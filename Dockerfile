@@ -7,7 +7,7 @@ COPY build/ build/
 RUN python3 build/build.py --out /out/data --cache /tmp/cache
 
 # Stufe 2: statische Seite ausliefern
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY site/ /usr/share/nginx/html/
 COPY --from=build /out/data /usr/share/nginx/html/data
