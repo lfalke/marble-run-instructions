@@ -68,9 +68,11 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .card-body { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
 .card-title { font-size: 22px; font-weight: 800; flex: 1; }
 .balls { display: flex; gap: 4px; }
-/* Schwierigkeit = Anzahl roter Kugeln */
+/* Schwierigkeit wie eine Ampel: 1 grüne, 2 gelbe oder 3 rote Kugeln */
 .balls i { width: 16px; height: 16px; border-radius: 50%; background: #d9dfdb; }
-.balls i.on { background: radial-gradient(circle at 35% 32%, #ff8a80, var(--red) 45%, #8f0f0a); }
+.balls[data-level="1"] i.on { background: radial-gradient(circle at 35% 32%, #8fe39e, var(--green) 45%, #1b6a2b); }
+.balls[data-level="2"] i.on { background: radial-gradient(circle at 35% 32%, #fff3a6, var(--yellow) 45%, #b38900); }
+.balls[data-level="3"] i.on { background: radial-gradient(circle at 35% 32%, #ff8a80, var(--red) 45%, #8f0f0a); }
 .card-meta { padding: 0 14px 12px; color: var(--muted); font-size: 15px; display: flex; justify-content: space-between; }
 .resume { color: var(--btn-ink); font-weight: 700; }
 

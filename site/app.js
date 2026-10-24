@@ -62,7 +62,7 @@ function renderMenu() {
       <img src="data/${item.id}/cover.jpg" alt="" loading="lazy">
       <div class="card-body">
         <span class="card-title"></span>
-        <span class="balls" aria-label="Schwierigkeit ${level} von 3">
+        <span class="balls" data-level="${level}" aria-label="Schwierigkeit ${level} von 3">
           ${[1, 2, 3].map((n) => `<i class="${n <= level ? 'on' : ''}"></i>`).join('')}
         </span>
       </div>

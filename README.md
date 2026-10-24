@@ -7,7 +7,7 @@ die dem Kasten beiliegen.
 ## Was die App kann
 
 - **Menü** mit dem Titelbild jeder Bahn, sortiert von einfach nach schwer (nach Teilezahl).
-  Rote Kugeln zeigen die Schwierigkeit: 1 Kugel bis 50 Teile, 2 bis 120 Teile, 3 darüber.
+  Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.
   Der farbige Streifen oben auf der Karte zeigt das Set (gelb Mini, blau Starter, grün Basis, rot Maxi).
 - **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
   Lieblinge erscheinen zusätzlich ganz oben im Menü.
@@ -46,7 +46,8 @@ Die Basis-Anleitungen zeigen zwei kleine Grundplatten. Mit der großen Maxi-Plat
 docker compose up -d --build
 ```
 
-Danach im Tablet-Browser `http://<IP-des-Servers>:8080` öffnen.
+Der Container lauscht auf Port 8080. Für die Installation auf dem Tablet braucht es HTTPS (siehe unten),
+also einen Reverse Proxy mit Zertifikat davor, z. B. Caddy oder Traefik.
 
 Der Build lädt die Anleitungsliste über die WordPress-API von hubelino.de
 (`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (1920 px, ca. 30 MB insgesamt).
@@ -57,20 +58,12 @@ Neue oder geänderte Anleitungen übernehmen: `build/anleitungen.json` anpassen 
 
 ## Auf dem Tablet installieren
 
-Android/Chrome: Menü ⋮ → **„Zum Startbildschirm hinzufügen“**. Name, Icons (192 px, 512 px, maskable) und
-Farben kommen aus [`site/manifest.webmanifest`](site/manifest.webmanifest).
+Android/Chrome: die HTTPS-Adresse öffnen, Menü ⋮ → **„Zum Startbildschirm hinzufügen“** bzw. „App installieren“.
+Name, Icons (192 px, 512 px, maskable) und Farben kommen aus
+[`site/manifest.webmanifest`](site/manifest.webmanifest). Die App startet dann im Vollbild im Querformat.
 
-Einschränkung: Über einfaches `http://` im Heimnetz legt Chrome nur eine **Verknüpfung** an, die in einem
-normalen Browser-Tab öffnet. Für eine echte App (eigenes Fenster, Vollbild ohne Adressleiste) und damit der
-Bildschirm beim Bauen nicht ausgeht (Wake Lock), verlangt der Browser **HTTPS**. Möglichkeiten:
-
-1. **Chrome-Flag auf dem Tablet** (am einfachsten): `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
-   aktivieren, `http://<IP-des-Servers>:8080` eintragen, Chrome neu starten.
-2. **Reverse Proxy mit echtem Zertifikat**, z. B. Caddy/Traefik mit eigener Domain und DNS-Challenge,
-   oder `tailscale serve`.
-
-Bis dahin: Im Menü auf **„Vollbild“** tippen blendet die Adressleiste aus, und die Bildschirm-Zeitsperre am
-Tablet etwas länger stellen.
+HTTPS ist dafür nötig: Über einfaches `http://` legt Chrome nur eine Verknüpfung an, die als Browser-Tab öffnet,
+und der Bildschirm würde beim Bauen ausgehen (die App hält ihn per Wake Lock an, das gibt es nur über HTTPS).
 
 ## Entwicklung ohne Docker
 
