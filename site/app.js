@@ -11,25 +11,61 @@ const els = {
 };
 const STAR_SVG = els.viewerStar.innerHTML;
 
+// ---------- Language (follows the browser, no switch in the app) ----------
+const TEXT = {
+  en: {
+    title: 'Marble Run Instructions', heading: 'Marble runs', filter: 'Filter', resetFilter: 'Reset filter',
+    fullscreen: 'Fullscreen', favorites: 'Favorites', allRuns: 'All runs', resetAll: 'Reset everything',
+    boxes: 'Building boxes', expansions: 'Expansions', difficulty: 'Difficulty', home: 'Back to the menu',
+    prev: 'Previous page', next: 'Next page', finish: 'Done, back to the menu',
+    favAdd: 'Add to favorites', favRemove: 'Remove from favorites',
+    level: (n) => `Difficulty ${n} of 3`, pages: (n) => `${n} pages`, parts: (n) => `${n} parts`,
+    resume: (n) => `continue at ${n}`, filterDone: (n) => `Done, ${n} runs`,
+    pageAlt: (title, page, pages) => `${title}, page ${page} of ${pages}`,
+    loadError: 'The instructions could not be loaded.',
+  },
+  de: {
+    title: 'Kugelbahn Anleitungen', heading: 'Kugelbahnen', filter: 'Filter', resetFilter: 'Filter zurücksetzen',
+    fullscreen: 'Vollbild', favorites: 'Lieblinge', allRuns: 'Alle Bahnen', resetAll: 'Alles zurücksetzen',
+    boxes: 'Baukästen', expansions: 'Erweiterungen', difficulty: 'Schwierigkeit', home: 'Zurück zum Menü',
+    prev: 'Vorherige Seite', next: 'Nächste Seite', finish: 'Fertig, zurück zum Menü',
+    favAdd: 'Als Liebling merken', favRemove: 'Kein Liebling mehr',
+    level: (n) => `Schwierigkeit ${n} von 3`, pages: (n) => `${n} Seiten`, parts: (n) => `${n} Teile`,
+    resume: (n) => `weiter bei ${n}`, filterDone: (n) => `Fertig, ${n} Bahnen`,
+    pageAlt: (title, page, pages) => `${title}, Seite ${page} von ${pages}`,
+    loadError: 'Die Anleitungen konnten nicht geladen werden.',
+  },
+};
+const LANG = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
+const t = TEXT[LANG];
+// Set names and titles from index.json come with one entry per language
+const tr = (names) => names[LANG] ?? names.en;
+document.documentElement.lang = LANG;
+for (const el of document.querySelectorAll('[data-t]')) el.textContent = t[el.dataset.t];
+for (const el of document.querySelectorAll('[data-t-label]')) el.setAttribute('aria-label', t[el.dataset.tLabel]);
+
 let list = [];
-let sets = []; // Baukästen und Erweiterungen aus index.json, in Anzeigereihenfolge
+let sets = []; // building boxes and expansions from index.json, in display order
 let current = null; // { item, page }
 let openedFromMenu = false;
 let filterOpenedFromMenu = false;
 
-// ---------- Fortschritt (nur Komfort, darf fehlen) ----------
-const STORE = 'kugelbahn-progress';
-const FAVS = 'kugelbahn-favorites';
-const FILTER = 'kugelbahn-filter';
-// Gespeichertes unter den alten Schlüsseln übernehmen, damit Lieblinge und Fortschritt erhalten bleiben
+// ---------- Progress (only a convenience, may be missing) ----------
+const STORE = 'marble-run-progress';
+const FAVS = 'marble-run-favorites';
+const FILTER = 'marble-run-filter';
+// Take over what was stored under the old keys, so favorites and progress are kept
 try {
-  for (const [from, to] of [['hubelino-progress', STORE], ['hubelino-favorites', FAVS]]) {
+  for (const [from, to] of [
+    ['hubelino-progress', STORE], ['hubelino-favorites', FAVS],
+    ['kugelbahn-progress', STORE], ['kugelbahn-favorites', FAVS], ['kugelbahn-filter', FILTER],
+  ]) {
     const old = localStorage.getItem(from);
     if (old !== null && localStorage.getItem(to) === null) localStorage.setItem(to, old);
     localStorage.removeItem(from);
   }
-} catch { /* privater Modus o.ä. */ }
-// Seite 1 ist das Titelbild, Seite 2 die Teileliste: erst ab dem ersten Bauschritt gibt es etwas fortzusetzen
+} catch { /* private mode or similar */ }
+// Page 1 is the cover, page 2 the parts list: only from the first building step on is there something to continue
 const MIN_RESUME_PAGE = 3;
 function loadProgress() {
   try {
@@ -39,13 +75,13 @@ function loadProgress() {
   } catch { return {}; }
 }
 function saveProgress(id, page) {
-  // Kurz zurück zur Teileliste blättern soll den gespeicherten Stand nicht verwerfen
+  // Briefly going back to the parts list should not discard the saved page
   if (page && page < MIN_RESUME_PAGE) return;
   try {
     const p = loadProgress();
     if (page) p[id] = page; else delete p[id];
     localStorage.setItem(STORE, JSON.stringify(p));
-  } catch { /* privater Modus o.ä. */ }
+  } catch { /* private mode or similar */ }
 }
 
 function loadFavorites() {
@@ -54,63 +90,65 @@ function loadFavorites() {
 function toggleFavorite(id) {
   const favs = loadFavorites();
   if (favs.has(id)) favs.delete(id); else favs.add(id);
-  try { localStorage.setItem(FAVS, JSON.stringify([...favs])); } catch { /* s.o. */ }
+  try { localStorage.setItem(FAVS, JSON.stringify([...favs])); } catch { /* see above */ }
   return favs.has(id);
 }
-// Filter: gewählte Baukästen/Erweiterungen und Schwierigkeiten. Ohne Eintrag gilt der Standard
-// aus anleitungen.json, so wirken spätere Änderungen dort auch nach einem Zurücksetzen.
+// Filter: selected building boxes/expansions and difficulties. Without an entry the default from
+// instructions.json applies, so later changes there also take effect after a reset.
 const LEVELS = [1, 2, 3];
 const defaultFilter = () => ({ sets: sets.filter((s) => s.default).map((s) => s.key), levels: [...LEVELS] });
 function loadFilter() {
   try {
     const f = JSON.parse(localStorage.getItem(FILTER));
-    if (Array.isArray(f?.sets) && Array.isArray(f?.levels)) return f;
-  } catch { /* s.o. */ }
+    // A set that no longer exists (e.g. renamed) would hide its instructions for good: start over
+    if (Array.isArray(f?.sets) && Array.isArray(f?.levels)
+      && f.sets.every((key) => sets.some((s) => s.key === key))) return f;
+  } catch { /* see above */ }
   return defaultFilter();
 }
 function saveFilter(f) {
-  try { localStorage.setItem(FILTER, JSON.stringify(f)); } catch { /* s.o. */ }
+  try { localStorage.setItem(FILTER, JSON.stringify(f)); } catch { /* see above */ }
 }
 function resetFilter() {
-  try { localStorage.removeItem(FILTER); } catch { /* s.o. */ }
+  try { localStorage.removeItem(FILTER); } catch { /* see above */ }
 }
 const sameItems = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
 const isDefaultFilter = (f) => {
   const d = defaultFilter();
   return sameItems(f.sets, d.sets) && sameItems(f.levels, d.levels);
 };
-// Eine Anleitung erscheint nur, wenn alles gewählt ist, was man für sie braucht
+// An instruction only appears when everything it needs is selected
 const matches = (item, f) =>
   item.components.every((c) => f.sets.includes(c)) && f.levels.includes(item.level);
 
 function setStar(btn, on) {
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', on);
-  btn.setAttribute('aria-label', on ? 'Kein Liebling mehr' : 'Als Liebling merken');
+  btn.setAttribute('aria-label', on ? t.favRemove : t.favAdd);
 }
 
 const src = (item, page) => `data/${item.id}/${page}.jpg?v=${item.rev}`;
 const ballsHTML = (level) => `
-  <span class="balls" data-level="${level}" aria-label="Schwierigkeit ${level} von 3">
+  <span class="balls" data-level="${level}" aria-label="${t.level(level)}">
     ${[1, 2, 3].map((n) => `<i class="${n <= level ? 'on' : ''}"></i>`).join('')}
   </span>`;
 
-// Baukasten: Farbe + Kurzname, Erweiterung: Icon (die Kinder können noch kaum lesen)
+// Building box: color + short name, expansion: icon (the kids can hardly read yet)
 function setBadge(set, className) {
   const el = document.createElement('span');
   el.className = `${className} ${className}-${set.kind}`;
   if (set.kind === 'ext') {
     el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${set.icon}</svg>`;
-    el.setAttribute('aria-label', set.name);
-    el.title = set.name;
+    el.setAttribute('aria-label', tr(set.name));
+    el.title = tr(set.name);
   } else {
     el.style.setProperty('--c', set.color);
-    el.textContent = set.name;
+    el.textContent = tr(set.name);
   }
   return el;
 }
 
-// ---------- Menü ----------
+// ---------- Menu ----------
 function renderMenu() {
   const progress = loadProgress();
   const favs = loadFavorites();
@@ -129,10 +167,10 @@ function renderMenu() {
       </div>
       <div class="card-tags"></div>
       <div class="card-meta">
-        <span>${item.pages} Seiten${item.parts ? ` · ${item.parts} Teile` : ''}</span>
-        ${resume ? `<span class="resume">weiter bei ${resume}</span>` : ''}
+        <span>${t.pages(item.pages)}${item.parts ? ` · ${t.parts(item.parts)}` : ''}</span>
+        ${resume ? `<span class="resume">${t.resume(resume)}</span>` : ''}
       </div>`;
-    btn.querySelector('.card-title').textContent = item.title;
+    btn.querySelector('.card-title').textContent = tr(item.title);
     btn.querySelector('.card-tags').append(
       ...item.components.map((key) => setBadge(sets.find((s) => s.key === key), 'tag')));
     btn.addEventListener('click', () => {
@@ -151,7 +189,7 @@ function renderMenu() {
     li.append(btn, star);
     return li;
   };
-  // Lieblinge zusätzlich oben und unabhängig vom Filter, damit kein gesternter Liebling verschwindet
+  // Favorites additionally at the top and regardless of the filter, so no starred favorite disappears
   const favItems = list.filter((item) => favs.has(item.id));
   els.favsSection.hidden = els.allTitle.hidden = favItems.length === 0;
   els.favs.replaceChildren(...favItems.map(card));
@@ -187,7 +225,7 @@ function renderFilter(filter, count) {
   const setTiles = (kind) => sets.filter((s) => s.kind === kind).map((s) => {
     const content = document.createDocumentFragment();
     content.append(setBadge(s, 'tile-badge'));
-    if (s.kind === 'ext') content.append(Object.assign(document.createElement('span'), { textContent: s.name }));
+    if (s.kind === 'ext') content.append(Object.assign(document.createElement('span'), { textContent: tr(s.name) }));
     return tile(content, filter.sets.includes(s.key), () => toggleIn(filter.sets, s.key));
   });
   els.fBox.replaceChildren(...setTiles('box'));
@@ -198,7 +236,7 @@ function renderFilter(filter, count) {
     return tile(content, filter.levels.includes(level), () => toggleIn(filter.levels, level));
   }));
   els.filterCount.textContent = count;
-  els.filterDone.setAttribute('aria-label', `Fertig, ${count} Bahnen`);
+  els.filterDone.setAttribute('aria-label', t.filterDone(count));
 }
 
 function closeFilter() {
@@ -235,7 +273,7 @@ function showPage(item, page, dir = 0) {
   const img = els.page;
   const swap = () => {
     img.src = src(item, page);
-    img.alt = `${item.title}, Seite ${page} von ${item.pages}`;
+    img.alt = t.pageAlt(tr(item.title), page, item.pages);
   };
 
   if (dir && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -264,7 +302,7 @@ function showPage(item, page, dir = 0) {
   const last = page === item.pages;
   els.prev.disabled = page === 1;
   els.next.classList.toggle('done', last);
-  els.next.setAttribute('aria-label', last ? 'Fertig, zurück zum Menü' : 'Nächste Seite');
+  els.next.setAttribute('aria-label', last ? t.finish : t.next);
   els.count.textContent = `${page} / ${item.pages}`;
   setStar(els.viewerStar, loadFavorites().has(item.id));
   els.bar.style.width = `${(page / item.pages) * 100}%`;
@@ -277,7 +315,7 @@ function step(dir) {
   const { item, page } = current;
   const target = page + dir;
   if (target > item.pages) {
-    saveProgress(item.id, 0); // fertig gebaut, nächstes Mal wieder von vorn
+    saveProgress(item.id, 0); // finished building, start from the beginning next time
     goHome();
     return;
   }
@@ -285,7 +323,7 @@ function step(dir) {
   location.replace(`#/${item.id}/${target}`);
 }
 
-// ---------- Wischen ----------
+// ---------- Swiping ----------
 let swipe = null;
 const zoomed = () => (window.visualViewport ? visualViewport.scale > 1.05 : false);
 
@@ -306,7 +344,7 @@ const endSwipe = (e) => {
   const { dx } = swipe;
   swipe = null;
   const far = e.type === 'pointerup' && Math.abs(dx) > Math.min(120, window.innerWidth * 0.12);
-  // Über die letzte Seite hinaus wischen beendet die Anleitung nicht, das geht nur per Knopf
+  // Swiping past the last page does not finish the instruction, only the button does
   if (far && dx < 0 && current.page < current.item.pages) step(1);
   else if (far && dx > 0 && current.page > 1) step(-1);
   else {
@@ -316,13 +354,13 @@ const endSwipe = (e) => {
 };
 els.stage.addEventListener('pointerup', endSwipe);
 els.stage.addEventListener('pointercancel', endSwipe);
-// Bei Pinch-Zoom darf der Browser frei verschieben
+// While pinch-zoomed the browser may pan freely
 window.visualViewport?.addEventListener('resize', () => {
   els.stage.style.touchAction = zoomed() ? 'auto' : '';
 });
 
-// Knöpfe reagieren schon auf pointerup: Nach einer Wischgeste verschluckt Chrome sonst
-// gelegentlich den ersten click. click bleibt für die Tastatur.
+// Buttons already react on pointerup: after a swipe Chrome otherwise occasionally
+// swallows the first click. click stays for the keyboard.
 function onTap(el, fn) {
   let down = false;
   el.addEventListener('pointerdown', () => { down = true; });
@@ -333,7 +371,7 @@ function onTap(el, fn) {
     e.preventDefault();
     fn();
   });
-  // Verhindert den nachgelagerten click, der sonst auf der Menü-Kachel unter dem Finger landen kann
+  // Prevents the delayed click that could otherwise land on the menu card under the finger
   el.addEventListener('touchend', (e) => e.preventDefault());
   el.addEventListener('click', (e) => { if (e.detail === 0) fn(); });
 }
@@ -351,8 +389,8 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'Escape') goHome();
 });
 
-// ---------- Bildschirm anlassen (nur über HTTPS/localhost verfügbar) ----------
-// Promise der laufenden Anfrage, damit schnelle Tipps nicht mehrere Locks anfordern
+// ---------- Keep the screen on (only available over HTTPS/localhost) ----------
+// Promise of the pending request, so quick taps do not request several locks
 let wakeLock = null;
 async function keepAwake(on) {
   try {
@@ -362,9 +400,9 @@ async function keepAwake(on) {
     } else if (!on && wakeLock) {
       await (await wakeLock).release();
     }
-  } catch { wakeLock = null; /* nicht verfügbar */ }
+  } catch { wakeLock = null; /* not available */ }
 }
-// Ohne Berührung darf der Bildschirm nach 10 Minuten wieder ausgehen, falls das Tablet vergessen wird
+// Without a touch the screen may turn off after 10 minutes, in case the tablet is forgotten
 const AWAKE_MS = 10 * 60 * 1000;
 let idleTimer = null;
 function stayAwake() {
@@ -382,10 +420,10 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') stayAwake();
 });
 
-// ---------- Vollbild ----------
+// ---------- Fullscreen ----------
 const root = document.documentElement;
-// Als installierte App läuft sie schon im Vollbild (Manifest). Nur beim Start prüfen: Ein Tab im
-// Vollbild meldet ebenfalls display-mode: fullscreen, dort muss der Knopf zum Verlassen bleiben.
+// As an installed app it already runs fullscreen (manifest). Only check at startup: a tab in
+// fullscreen also reports display-mode: fullscreen, there the button is needed to leave it.
 const installed = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
 if (!root.requestFullscreen || installed) els.fullscreen.hidden = true;
 els.fullscreen.addEventListener('click', () => {
@@ -430,5 +468,5 @@ fetch('data/index.json')
   })
   .catch(() => {
     els.menu.hidden = false;
-    els.grid.textContent = 'Die Anleitungen konnten nicht geladen werden.';
+    els.grid.textContent = t.loadError;
   });

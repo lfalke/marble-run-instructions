@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1f6b34">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>Kugelbahn Anleitungen</title>
+  <title data-t="title">Marble Run Instructions</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
@@ -15,47 +15,47 @@
 <body>
   <main id="menu" class="menu" hidden>
     <header class="menu-head">
-      <h1>Kugelbahnen</h1>
+      <h1 data-t="heading">Marble runs</h1>
       <div class="head-actions">
-        <button id="reset" class="chip chip-reset" type="button" aria-label="Filter zurücksetzen" hidden>
+        <button id="reset" class="chip chip-reset" type="button" aria-label="Reset filter" data-t-label="resetFilter" hidden>
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
         </button>
-        <button id="open-filter" class="chip" type="button" aria-label="Filter">
+        <button id="open-filter" class="chip" type="button" aria-label="Filter" data-t-label="filter">
           <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.2"/><circle cx="15" cy="12" r="2.2"/><circle cx="7" cy="18" r="2.2"/></svg>
-          Filter
+          <span data-t="filter">Filter</span>
         </button>
-        <button id="fullscreen" class="chip" type="button" aria-label="Vollbild">⛶ Vollbild</button>
+        <button id="fullscreen" class="chip" type="button" aria-label="Fullscreen" data-t-label="fullscreen">⛶ <span data-t="fullscreen">Fullscreen</span></button>
       </div>
     </header>
     <section id="favs-section" hidden>
-      <h2 class="section-title">★ Lieblinge</h2>
+      <h2 class="section-title">★ <span data-t="favorites">Favorites</span></h2>
       <ul id="favs" class="grid"></ul>
     </section>
     <section>
-      <h2 id="all-title" class="section-title" hidden>Alle Bahnen</h2>
+      <h2 id="all-title" class="section-title" data-t="allRuns" hidden>All runs</h2>
       <ul id="grid" class="grid"></ul>
       <div id="empty" class="empty" hidden>
         <button id="empty-reset" class="chip chip-big" type="button">
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
-          Alles zurücksetzen
+          <span data-t="resetAll">Reset everything</span>
         </button>
       </div>
     </section>
   </main>
 
   <div id="filter" class="filter" hidden>
-    <div class="filter-sheet" role="dialog" aria-label="Filter">
-      <h2 class="filter-title">Baukästen</h2>
+    <div class="filter-sheet" role="dialog" aria-label="Filter" data-t-label="filter">
+      <h2 class="filter-title" data-t="boxes">Building boxes</h2>
       <div id="f-box" class="tiles"></div>
-      <h2 class="filter-title">Erweiterungen</h2>
+      <h2 class="filter-title" data-t="expansions">Expansions</h2>
       <div id="f-ext" class="tiles"></div>
-      <h2 class="filter-title">Schwierigkeit</h2>
+      <h2 class="filter-title" data-t="difficulty">Difficulty</h2>
       <div id="f-level" class="tiles"></div>
       <div class="filter-foot">
-        <button id="filter-reset" class="chip" type="button" aria-label="Filter zurücksetzen">
+        <button id="filter-reset" class="chip" type="button" aria-label="Reset filter" data-t-label="resetFilter">
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
         </button>
-        <button id="filter-done" class="chip chip-go" type="button" aria-label="Fertig">
+        <button id="filter-done" class="chip chip-go" type="button" aria-label="Done">
           <svg viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></svg>
           <span id="filter-count"></span>
         </button>
@@ -67,18 +67,18 @@
     <div id="stage" class="stage">
       <img id="page" class="page" alt="">
     </div>
-    <button id="home" class="btn btn-home" type="button" aria-label="Zurück zum Menü">
+    <button id="home" class="btn btn-home" type="button" aria-label="Back to the menu" data-t-label="home">
       <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h5v-6h3v6h5V9.5"/></svg>
     </button>
-    <button id="prev" class="btn btn-prev" type="button" aria-label="Vorherige Seite">
+    <button id="prev" class="btn btn-prev" type="button" aria-label="Previous page" data-t-label="prev">
       <svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8"/></svg>
     </button>
-    <button id="next" class="btn btn-next" type="button" aria-label="Nächste Seite">
+    <button id="next" class="btn btn-next" type="button" aria-label="Next page">
       <svg class="i-next" viewBox="0 0 24 24"><path d="m9 4 8 8-8 8"/></svg>
       <svg class="i-done" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></svg>
     </button>
     <div class="topright">
-      <button id="viewer-star" class="star" type="button" aria-pressed="false" aria-label="Als Liebling merken">
+      <button id="viewer-star" class="star" type="button" aria-pressed="false" aria-label="Add to favorites">
         <svg viewBox="0 0 24 24"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z"/></svg>
       </button>
       <div class="counter"><span id="count"></span></div>

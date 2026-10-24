@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Laedt die Hubelino-Anleitungen, rendert jede PDF-Seite als JPEG und schreibt index.json.
+"""Downloads the Hubelino instructions, renders every PDF page as a JPEG and writes index.json.
 
-Benoetigt poppler-utils (pdfinfo, pdftoppm, pdftotext). Erneutes Ausfuehren ist billig:
-bereits geladene PDFs und gerenderte Seiten werden uebersprungen.
+Needs poppler-utils (pdfinfo, pdftoppm, pdftotext). Running it again is cheap:
+PDFs already downloaded and pages already rendered are skipped.
 """
 import argparse
 import hashlib
@@ -15,10 +15,11 @@ import urllib.request
 from pathlib import Path
 
 API = "https://www.hubelino.de/wp-json/wp/v2/anleitungen?_fields=acf&per_page=100"
-PAGE_PX = 1920  # laengere Seitenkante; etwa Tablet-Aufloesung, haelt das Image klein
+PAGE_PX = 1920  # longer page edge; about tablet resolution, keeps the image small
 THUMB_PX = 640
-MIN_PARTS = 10  # weniger gefunden: Teileliste ist nur ein Bild, Teile nicht zaehlbar
-UA = {"User-Agent": "kugelbahn-anleitungen/1.0 (private use; +https://github.com/lfalke/kugelbahn-anleitungen)"}
+MIN_PARTS = 10  # fewer found: the parts list is just an image, parts cannot be counted
+LANGS = ("en", "de")  # first one is the fallback
+UA = {"User-Agent": "marble-run-instructions/1.0 (private use; +https://github.com/lfalke/marble-run-instructions)"}
 
 
 def fetch(url):
@@ -27,7 +28,7 @@ def fetch(url):
 
 
 def pdf_url(acf):
-    # Das Feld ist mal ein String, mal ein ACF-Dateiobjekt
+    # The field is sometimes a string, sometimes an ACF file object
     v = acf.get("anleitung_normal")
     return v["url"] if isinstance(v, dict) else v
 
@@ -44,18 +45,18 @@ def page_info(pdf):
 
 
 def count_parts(pdf, pages):
-    # Seite 2 ist normalerweise die Teileliste ("x20", "x44", ...)
+    # Page 2 is usually the parts list ("x20", "x44", ...)
     text = run("pdftotext", "-f", "2", "-l", "2", str(pdf), "-")
     n = sum(int(m) for m in re.findall(r"\bx(\d+)\b", text))
     if not n:
-        # Aeltere Anleitungen zeigen nur Teile pro Schritt ("10x")
+        # Older instructions only show parts per step ("10x")
         text = run("pdftotext", "-f", "1", "-l", str(pages), str(pdf), "-")
         n = sum(int(m) for m in re.findall(r"\b(\d+)x\b", text))
     return n if n >= MIN_PARTS else None
 
 
 def difficulty(parts):
-    # Wie eine Ampel: 1 gruene Kugel bis 50 Teile, 2 gelbe bis 120, 3 rote darueber
+    # Like a traffic light: 1 green ball up to 50 parts, 2 yellow up to 120, 3 red above
     return 1 if parts <= 50 else 2 if parts <= 120 else 3
 
 
@@ -68,13 +69,13 @@ def render(pdf, page, dest, px):
 
 
 def parse_name(name, number_to_key):
-    """'420572_420589-A1' -> (['maxi', 'trichter'], 'A'). Unbekannte Nummern bleiben als Nummer stehen."""
+    """'420572_420589-A1' -> (['big', 'twister'], 'A'). Unknown numbers stay as they are."""
     m = re.match(r"^(.*?)[-_]([A-Z])\d*$", name)
     if not m:
-        raise ValueError(f"{name}: Name nicht erkannt")
+        raise ValueError(f"{name}: name not recognized")
     numbers = []
     for n in re.findall(r"\d+", m.group(1)):
-        # Abgekuerzte Nummern wie in '420572_-497_-503' uebernehmen den Anfang der ersten
+        # Shortened numbers as in '420572_-497_-503' take the beginning of the first one
         numbers.append(numbers[0][: 6 - len(n)] + n if numbers and len(n) < 6 else n)
     keys = []
     for n in numbers:
@@ -89,17 +90,21 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=here.parent / "site" / "data")
     ap.add_argument("--cache", type=Path, default=here / "cache")
-    ap.add_argument("--config", type=Path, default=here / "anleitungen.json")
+    ap.add_argument("--config", type=Path, default=here / "instructions.json")
     args = ap.parse_args()
 
     cfg = json.loads(args.config.read_text())
     sets = cfg["sets"]
     number_to_key = {n: key for key, s in sets.items() for n in s["numbers"]}
     order = {key: i for i, key in enumerate(sets)}
+
+    def set_name(key, lang):
+        return sets[key]["name"][lang] if key in sets else key
+
     entries = {}
     for e in json.loads(fetch(API)):
         acf = e["acf"]
-        # pi ist ein eigenes System mit anderen Teilen
+        # pi is a separate system with different parts
         if acf.get("set", "").strip() == "pi" or acf["name_deutsch"] in cfg["exclude"]:
             continue
         entries[acf["name_deutsch"]] = acf
@@ -112,25 +117,25 @@ def main():
         components = cfg["components"].get(name, components)
         unknown = [c for c in components if c not in sets]
         if unknown:
-            print(f"WARN {name}: unbekannte Set-Nummer {', '.join(unknown)}, bitte in sets eintragen "
-                  f"({acf.get('kurzbeschreibung_deutsch', '')})", file=sys.stderr)
+            print(f"WARN {name}: unknown set number {', '.join(unknown)}, please add it to sets "
+                  f"({acf.get('kurzbeschreibung_englisch', '').strip()})", file=sys.stderr)
         components.sort(key=lambda c: order.get(c, len(order)))
         url = pdf_url(acf)
         pdf = args.cache / Path(url).name
         if not pdf.exists():
-            print(f"lade {url}")
+            print(f"downloading {url}")
             pdf.write_bytes(fetch(url))
 
         pages, w, h = page_info(pdf)
-        # Cache-Buster fuer den Browser (Bilder werden als immutable ausgeliefert); aendert sich
-        # mit PDF-Quelle oder Aufloesung und loest dann auch hier ein Neurendern aus
+        # Cache buster for the browser (images are served as immutable); changes with the
+        # PDF source or resolution and then also triggers a re-render here
         rev = hashlib.sha1(f"{url}|{PAGE_PX}|{THUMB_PX}".encode()).hexdigest()[:8]
         out = args.out / name
         stamp = out / ".rev"
         if out.exists() and (not stamp.exists() or stamp.read_text() != rev):
             shutil.rmtree(out)
         out.mkdir(exist_ok=True)
-        print(f"rendere {name} ({pages} Seiten)")
+        print(f"rendering {name} ({pages} pages)")
         for p in range(1, pages + 1):
             render(pdf, p, out / f"{p}.jpg", PAGE_PX)
         render(pdf, 1, out / "cover.jpg", THUMB_PX)
@@ -139,12 +144,13 @@ def main():
         parts = count_parts(pdf, pages)
         level = cfg["levels"].get(name) or (parts and difficulty(parts))
         if not level:
-            print(f"WARN {name}: Teile nicht zaehlbar, bitte Schwierigkeit in levels eintragen", file=sys.stderr)
+            print(f"WARN {name}: parts cannot be counted, please add the difficulty to levels", file=sys.stderr)
             level = 2
-        label = " + ".join(sets[c]["name"] if c in sets else c for c in components)
+        title = cfg["titles"].get(name) or {
+            lang: " + ".join(set_name(c, lang) for c in components) + f" {letter}" for lang in LANGS}
         result.append({
             "id": name,
-            "title": cfg.get("titles", {}).get(name, f"{label} {letter}"),
+            "title": title,
             "components": components,
             "pages": pages,
             "parts": parts,
@@ -153,15 +159,16 @@ def main():
             "rev": rev,
         })
 
-    # Ohne Teilezahl ans Ende ihrer Schwierigkeitsstufe
+    # Without a part count: at the end of their difficulty level
     result.sort(key=lambda r: (r["parts"] or {1: 50, 2: 120, 3: 999}[r["level"]], r["id"]))
     used = {c for r in result for c in r["components"]}
-    # Nur Sets, zu denen es Anleitungen gibt; unbekannte Nummern ans Ende (grau, ohne Icon)
+    # Only sets that have instructions; unknown numbers at the end (gray, no icon)
     meta = [{"key": key, **{k: v for k, v in s.items() if k != "numbers"}} for key, s in sets.items() if key in used]
-    meta += [{"key": c, "name": c, "kind": "box", "color": "#adb5bd"} for c in sorted(used - set(sets))]
+    meta += [{"key": c, "name": {lang: c for lang in LANGS}, "kind": "box", "color": "#adb5bd"}
+             for c in sorted(used - set(sets))]
     index = {"sets": meta, "items": result}
     (args.out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1))
-    print(f"{len(result)} Anleitungen -> {args.out / 'index.json'}")
+    print(f"{len(result)} instructions -> {args.out / 'index.json'}")
 
 
 if __name__ == "__main__":

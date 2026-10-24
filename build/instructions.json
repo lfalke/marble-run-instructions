@@ -1,0 +1,56 @@
+{
+  "_comment": [
+    "All instructions from the API except the pi line (a separate system) and 'exclude'.",
+    "sets: components that make up the article numbers in an instruction's name.",
+    "name: short name per language. English names follow Hubelino's own (kurzbeschreibung_englisch in the API).",
+    "kind 'box' = building box (label with color + short name), 'ext' = expansion (label with icon).",
+    "default: part of the filter's initial selection. Big + Basic + Starter + Mini gives the instructions",
+    "whose parts list (page 2 of the PDF) was checked against the Big Building Box (Baukasten maxi)."
+  ],
+  "sets": {
+    "big":         { "numbers": ["420572"], "name": { "en": "Big", "de": "Maxi" }, "kind": "box", "color": "#1d57b8", "default": true },
+    "basic":       { "numbers": ["420480", "420008"], "name": { "en": "Basic", "de": "Basis" }, "kind": "box", "color": "#2f9e44", "default": true },
+    "starter":     { "numbers": ["420145"], "name": { "en": "Starter", "de": "Starter" }, "kind": "box", "color": "#e2231a", "default": true },
+    "mini":        { "numbers": ["420169"], "name": { "en": "Mini", "de": "Mini" }, "kind": "box", "color": "#f08c00", "default": true },
+    "mega":        { "numbers": ["420633"], "name": { "en": "Mega", "de": "Mega" }, "kind": "box", "color": "#7048e8" },
+    "200":         { "numbers": ["420183"], "name": { "en": "200", "de": "200er" }, "kind": "box", "color": "#0b7285" },
+    "anniversary": { "numbers": ["420466"], "name": { "en": "Anniversary", "de": "Jubiläum" }, "kind": "box", "color": "#c2255c" },
+    "run128":      { "numbers": ["420381"], "name": { "en": "Run 128", "de": "Bahn 128" }, "kind": "box", "color": "#5f3dc4" },
+    "run55":       { "numbers": ["420473"], "name": { "en": "Run 55", "de": "Bahn 55" }, "kind": "box", "color": "#9c36b5" },
+    "blocks120":   { "numbers": ["420619"], "name": { "en": "Blocks 120", "de": "Steine 120" }, "kind": "box", "color": "#495057" },
+    "blocks60":    { "numbers": ["420602"], "name": { "en": "Blocks 60", "de": "Steine 60" }, "kind": "box", "color": "#868e96" },
+
+    "twister":     { "numbers": ["420589", "420176"], "name": { "en": "Twister", "de": "Trichter" }, "kind": "ext",
+                     "icon": "<ellipse cx='12' cy='6' rx='9' ry='3'/><path d='M3 6l7 10v5h4v-5l7-10M7.5 11.5q4.5 2 9 0'/>" },
+    "lift":        { "numbers": ["420596"], "name": { "en": "Marble Lift", "de": "Kugelpumpe" }, "kind": "ext",
+                     "icon": "<path d='M8 21V7M16 21V7M4 21h16M7 7l5-5 5 5'/><circle cx='12' cy='11' r='2'/><circle cx='12' cy='16.5' r='2'/>" },
+    "switch":      { "numbers": ["420497"], "name": { "en": "Switch", "de": "Weiche" }, "kind": "ext",
+                     "icon": "<path d='M12 21v-8L5 4M12 13l7-9M3.5 8 6 4.5l3.5.5M20.5 8 18 4.5l-3.5.5'/>" },
+    "seesaw":      { "numbers": ["420503"], "name": { "en": "See-Saw", "de": "Wippe" }, "kind": "ext",
+                     "icon": "<path d='M2 9l20 6M12 12l-4.5 8h9z'/>" },
+    "catapult":    { "numbers": ["420398"], "name": { "en": "Catapult", "de": "Katapult" }, "kind": "ext",
+                     "icon": "<path d='M3 21h18M5 18l13-9M9 21l3-6 3 6'/><circle cx='19' cy='6' r='2.5'/>" },
+    "cradle":      { "numbers": ["420411"], "name": { "en": "Cradle Chute", "de": "Schwinge" }, "kind": "ext",
+                     "icon": "<path d='M4 3h16M12 3v7M5 10q7 9 14 0'/><circle cx='12' cy='13' r='1.5'/>" },
+    "slide":       { "numbers": ["420640"], "name": { "en": "Slide", "de": "Rutsche" }, "kind": "ext",
+                     "icon": "<path d='M5 21V4M5 8h3M5 13h3M8 4h1q3 0 4.5 6t6.5 11'/>" },
+    "hammer":      { "numbers": ["420657"], "name": { "en": "Gravity Hammer", "de": "Hammerschlag" }, "kind": "ext",
+                     "icon": "<path d='M13 9l8 8-2 2-8-8M4 7l5-5 5 5-5 5z'/>" },
+    "trap":        { "numbers": ["420725"], "name": { "en": "Marble Trap", "de": "Kugelfalle" }, "kind": "ext",
+                     "icon": "<path d='M4 9v11h16V9M2 9h9l4-4'/><circle cx='12' cy='15' r='2.5'/>" }
+  },
+  "_titles": "Titles per language where the generated one ('<sets> <letter>') does not fit",
+  "titles": {
+    "420008-C1": { "en": "Basic Curves", "de": "Basis Kurven" }
+  },
+  "_components": "Components where the name is wrong (the parts list shows Twister + Marble Lift, no Switch)",
+  "components": {
+    "420572_420497_420596_A1": ["big", "twister", "lift"]
+  },
+  "_levels": "Difficulty 1-3 for instructions without a parts list (parts cannot be counted)",
+  "levels": {
+    "420183-A1": 3, "420183-B1": 3, "420183-C1": 3, "420183-D1": 3,
+    "420169_420176-A1": 1, "420169_420398-A1": 1, "420169_420411-A1": 1
+  },
+  "exclude": []
+}

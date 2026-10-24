@@ -1,7 +1,7 @@
 services:
-  kugelbahn:
+  marble-run:
     build: .
-    container_name: kugelbahn
+    container_name: marble-run
     ports:
       - "8420:80"
     restart: unless-stopped

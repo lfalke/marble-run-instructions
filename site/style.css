@@ -23,10 +23,10 @@ body {
   -webkit-user-select: none;
 }
 [hidden] { display: none !important; }
-/* manipulation: schnelles Doppeltippen soll blättern, nicht zoomen */
+/* manipulation: a quick double tap should turn the page, not zoom */
 button { font: inherit; cursor: pointer; touch-action: manipulation; }
 
-/* ---------- Menü ---------- */
+/* ---------- Menu ---------- */
 .menu {
   min-height: 100%;
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left));
@@ -49,7 +49,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 }
 .chip svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .chip:active { transform: scale(.95); }
-/* Filter weicht vom Standard ab: deutlich sichtbar, damit niemand eine unerwartet kurze Liste wundert */
+/* Filter differs from the default: clearly visible, so nobody wonders about an unexpectedly short list */
 .chip.active { background: var(--yellow); color: var(--ink); }
 .chip-reset { padding: 10px 12px; }
 .chip-big { font-size: 22px; padding: 16px 28px; }
@@ -79,7 +79,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .card-body { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
 .card-title { font-size: 22px; font-weight: 800; flex: 1; }
 .balls { display: flex; gap: 4px; }
-/* Schwierigkeit wie eine Ampel: 1 grüne, 2 gelbe oder 3 rote Kugeln */
+/* Difficulty like a traffic light: 1 green, 2 yellow or 3 red balls */
 .balls i { width: 16px; height: 16px; border-radius: 50%; background: #d9dfdb; }
 .balls[data-level="1"] i.on { background: radial-gradient(circle at 35% 32%, #8fe39e, var(--green) 45%, #1b6a2b); }
 .balls[data-level="2"] i.on { background: radial-gradient(circle at 35% 32%, #fff3a6, var(--yellow) 45%, #b38900); }
@@ -95,7 +95,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .card-meta { padding: 0 14px 12px; color: var(--muted); font-size: 15px; display: flex; justify-content: space-between; }
 .resume { color: var(--btn-ink); font-weight: 700; }
 
-/* ---------- Stern ---------- */
+/* ---------- Star ---------- */
 .star {
   width: 56px; height: 56px; border: 0; border-radius: 50%; padding: 0;
   background: var(--btn); box-shadow: var(--shadow);
@@ -125,7 +125,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   font-size: 15px; font-weight: 700;
 }
 .tile:active { transform: scale(.95); }
-/* Abgewählt: blass (Farbe bleibt erkennbar, die Kinder suchen danach), gewählt: grüner Rahmen mit Haken */
+/* Deselected: faded (the color stays recognizable, the kids look for it), selected: green border with a check mark */
 .tile[aria-pressed="false"] > * { opacity: .4; }
 .tile[aria-pressed="true"] { border-color: var(--btn-ink); background: #e3f3e6; }
 .tile[aria-pressed="true"]::after {
