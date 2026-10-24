@@ -50,6 +50,10 @@ docker compose up -d --build
 Der Container lauscht auf Port 8080. Für die Installation auf dem Tablet braucht es HTTPS (siehe unten),
 also einen Reverse Proxy mit Zertifikat davor, z. B. Caddy oder Traefik.
 
+Port 8080 darf nicht aus dem Internet erreichbar sein: Docker veröffentlicht ihn auf allen Netzwerkschnittstellen
+und an ufw/firewalld vorbei. Läuft der Reverse Proxy auf demselben Rechner, in `compose.yaml`
+`"127.0.0.1:8080:80"` eintragen.
+
 Der Build lädt die Anleitungsliste über die WordPress-API von hubelino.de
 (`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (2560 px, ca. 50 MB insgesamt).
 Das dauert 1–2 Minuten. Das fertige Image ist ein schlankes nginx ohne weitere Abhängigkeiten.
