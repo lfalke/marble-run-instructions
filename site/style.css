@@ -76,12 +76,6 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .card-meta { padding: 0 14px 12px; color: var(--muted); font-size: 15px; display: flex; justify-content: space-between; }
 .resume { color: var(--btn-ink); font-weight: 700; }
 
-/* Gruppe als farbiger Streifen */
-.card[data-group="Mini"]    { border-top: 8px solid var(--yellow); }
-.card[data-group="Starter"] { border-top: 8px solid var(--blue); }
-.card[data-group="Basis"]   { border-top: 8px solid var(--green); }
-.card[data-group="Maxi"]    { border-top: 8px solid var(--red); }
-
 /* ---------- Stern ---------- */
 .star {
   width: 56px; height: 56px; border: 0; border-radius: 50%; padding: 0;
@@ -91,7 +85,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .star:active { transform: scale(.9); }
 .star svg { width: 34px; height: 34px; fill: none; stroke: #9aa59e; stroke-width: 2; stroke-linejoin: round; }
 .star.on svg { fill: var(--yellow); stroke: #c79a00; }
-.star-card { position: absolute; top: 18px; left: 10px; }
+.star-card { position: absolute; top: 10px; left: 10px; }
 
 /* ---------- Viewer ---------- */
 .viewer { position: fixed; inset: 0; background: #2a7a3a; overflow: hidden; }

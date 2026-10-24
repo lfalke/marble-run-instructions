@@ -55,7 +55,6 @@ function renderMenu() {
     const btn = document.createElement('button');
     btn.className = 'card';
     btn.type = 'button';
-    btn.dataset.group = item.group;
     const level = difficulty(item.parts);
     const resume = progress[item.id];
     btn.innerHTML = `

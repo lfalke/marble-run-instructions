@@ -7,9 +7,7 @@ die dem Kasten beiliegen.
 ## Was die App kann
 
 - **Menü** mit dem Titelbild jeder Bahn, sortiert von einfach nach schwer (nach Teilezahl).
-  Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.
-  Der farbige Streifen oben auf der Karte zeigt das Set (gelb Mini, blau Starter, grün Basis, rot Maxi).
-- **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
+  Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.- **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
   Lieblinge erscheinen zusätzlich ganz oben im Menü.
 - **Anleitung**: immer genau eine Seite, bildschirmfüllend. Blättern per Wischen oder mit den großen Pfeilen,
   Haus-Knopf zurück zum Menü. Auf der letzten Seite wird der Pfeil zum gelben Haken („fertig“).
