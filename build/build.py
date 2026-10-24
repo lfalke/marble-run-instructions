@@ -15,8 +15,9 @@ import urllib.request
 from pathlib import Path
 
 API = "https://www.hubelino.de/wp-json/wp/v2/anleitungen?_fields=acf&per_page=100"
-PAGE_PX = 2560  # laengere Seitenkante; Reserve fuer Zwei-Finger-Zoom auf dem Tablet
+PAGE_PX = 1920  # laengere Seitenkante; etwa Tablet-Aufloesung, haelt das Image klein
 THUMB_PX = 640
+MIN_PARTS = 10  # weniger gefunden: Teileliste ist nur ein Bild, Teile nicht zaehlbar
 UA = {"User-Agent": "kugelbahn-anleitungen/1.0 (private use; +https://github.com/lfalke/kugelbahn-anleitungen)"}
 
 
@@ -46,11 +47,16 @@ def count_parts(pdf, pages):
     # Seite 2 ist normalerweise die Teileliste ("x20", "x44", ...)
     text = run("pdftotext", "-f", "2", "-l", "2", str(pdf), "-")
     n = sum(int(m) for m in re.findall(r"\bx(\d+)\b", text))
-    if n:
-        return n
-    # Aeltere Anleitungen zeigen nur Teile pro Schritt ("10x")
-    text = run("pdftotext", "-f", "1", "-l", str(pages), str(pdf), "-")
-    return sum(int(m) for m in re.findall(r"\b(\d+)x\b", text))
+    if not n:
+        # Aeltere Anleitungen zeigen nur Teile pro Schritt ("10x")
+        text = run("pdftotext", "-f", "1", "-l", str(pages), str(pdf), "-")
+        n = sum(int(m) for m in re.findall(r"\b(\d+)x\b", text))
+    return n if n >= MIN_PARTS else None
+
+
+def difficulty(parts):
+    # Wie eine Ampel: 1 gruene Kugel bis 50 Teile, 2 gelbe bis 120, 3 rote darueber
+    return 1 if parts <= 50 else 2 if parts <= 120 else 3
 
 
 def render(pdf, page, dest, px):
@@ -59,6 +65,23 @@ def render(pdf, page, dest, px):
     stem = dest.with_suffix("")
     run("pdftoppm", "-jpeg", "-jpegopt", "quality=82", "-scale-to", str(px),
         "-f", str(page), "-l", str(page), "-singlefile", str(pdf), str(stem))
+
+
+def parse_name(name, number_to_key):
+    """'420572_420589-A1' -> (['maxi', 'trichter'], 'A'). Unbekannte Nummern bleiben als Nummer stehen."""
+    m = re.match(r"^(.*?)[-_]([A-Z])\d*$", name)
+    if not m:
+        raise ValueError(f"{name}: Name nicht erkannt")
+    numbers = []
+    for n in re.findall(r"\d+", m.group(1)):
+        # Abgekuerzte Nummern wie in '420572_-497_-503' uebernehmen den Anfang der ersten
+        numbers.append(numbers[0][: 6 - len(n)] + n if numbers and len(n) < 6 else n)
+    keys = []
+    for n in numbers:
+        key = number_to_key.get(n, n)
+        if key not in keys:
+            keys.append(key)
+    return keys, m.group(2)
 
 
 def main():
@@ -70,16 +93,28 @@ def main():
     args = ap.parse_args()
 
     cfg = json.loads(args.config.read_text())
-    entries = {e["acf"]["name_deutsch"]: e["acf"] for e in json.loads(fetch(API))}
+    sets = cfg["sets"]
+    number_to_key = {n: key for key, s in sets.items() for n in s["numbers"]}
+    order = {key: i for i, key in enumerate(sets)}
+    entries = {}
+    for e in json.loads(fetch(API)):
+        acf = e["acf"]
+        # pi ist ein eigenes System mit anderen Teilen
+        if acf.get("set", "").strip() == "pi" or acf["name_deutsch"] in cfg["exclude"]:
+            continue
+        entries[acf["name_deutsch"]] = acf
 
     args.cache.mkdir(parents=True, exist_ok=True)
     args.out.mkdir(parents=True, exist_ok=True)
     result = []
-    for name in cfg["include"]:
-        acf = entries.get(name)
-        if not acf:
-            print(f"WARN {name}: nicht mehr in der API", file=sys.stderr)
-            continue
+    for name, acf in sorted(entries.items()):
+        components, letter = parse_name(name, number_to_key)
+        components = cfg["components"].get(name, components)
+        unknown = [c for c in components if c not in sets]
+        if unknown:
+            print(f"WARN {name}: unbekannte Set-Nummer {', '.join(unknown)}, bitte in sets eintragen "
+                  f"({acf.get('kurzbeschreibung_deutsch', '')})", file=sys.stderr)
+        components.sort(key=lambda c: order.get(c, len(order)))
         url = pdf_url(acf)
         pdf = args.cache / Path(url).name
         if not pdf.exists():
@@ -101,19 +136,31 @@ def main():
         render(pdf, 1, out / "cover.jpg", THUMB_PX)
         stamp.write_text(rev)
 
-        group = cfg["groups"].get(name[:6], "")
+        parts = count_parts(pdf, pages)
+        level = cfg["levels"].get(name) or (parts and difficulty(parts))
+        if not level:
+            print(f"WARN {name}: Teile nicht zaehlbar, bitte Schwierigkeit in levels eintragen", file=sys.stderr)
+            level = 2
+        label = " + ".join(sets[c]["name"] if c in sets else c for c in components)
         result.append({
             "id": name,
-            "title": cfg.get("titles", {}).get(name, f"{group} {name.split('-')[-1][0]}"),
-            "group": group,
+            "title": cfg.get("titles", {}).get(name, f"{label} {letter}"),
+            "components": components,
             "pages": pages,
-            "parts": count_parts(pdf, pages),
+            "parts": parts,
+            "level": level,
             "landscape": w > h,
             "rev": rev,
         })
 
-    result.sort(key=lambda r: (r["parts"], r["id"]))
-    (args.out / "index.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))
+    # Ohne Teilezahl ans Ende ihrer Schwierigkeitsstufe
+    result.sort(key=lambda r: (r["parts"] or {1: 50, 2: 120, 3: 999}[r["level"]], r["id"]))
+    used = {c for r in result for c in r["components"]}
+    # Nur Sets, zu denen es Anleitungen gibt; unbekannte Nummern ans Ende (grau, ohne Icon)
+    meta = [{"key": key, **{k: v for k, v in s.items() if k != "numbers"}} for key, s in sets.items() if key in used]
+    meta += [{"key": c, "name": c, "kind": "box", "color": "#adb5bd"} for c in sorted(used - set(sets))]
+    index = {"sets": meta, "items": result}
+    (args.out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1))
     print(f"{len(result)} Anleitungen -> {args.out / 'index.json'}")
 
 

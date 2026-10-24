@@ -16,7 +16,16 @@
   <main id="menu" class="menu" hidden>
     <header class="menu-head">
       <h1>Kugelbahnen</h1>
-      <button id="fullscreen" class="chip" type="button" aria-label="Vollbild">⛶ Vollbild</button>
+      <div class="head-actions">
+        <button id="reset" class="chip chip-reset" type="button" aria-label="Filter zurücksetzen" hidden>
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
+        </button>
+        <button id="open-filter" class="chip" type="button" aria-label="Filter">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.2"/><circle cx="15" cy="12" r="2.2"/><circle cx="7" cy="18" r="2.2"/></svg>
+          Filter
+        </button>
+        <button id="fullscreen" class="chip" type="button" aria-label="Vollbild">⛶ Vollbild</button>
+      </div>
     </header>
     <section id="favs-section" hidden>
       <h2 class="section-title">★ Lieblinge</h2>
@@ -25,8 +34,34 @@
     <section>
       <h2 id="all-title" class="section-title" hidden>Alle Bahnen</h2>
       <ul id="grid" class="grid"></ul>
+      <div id="empty" class="empty" hidden>
+        <button id="empty-reset" class="chip chip-big" type="button">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
+          Alles zurücksetzen
+        </button>
+      </div>
     </section>
   </main>
+
+  <div id="filter" class="filter" hidden>
+    <div class="filter-sheet" role="dialog" aria-label="Filter">
+      <h2 class="filter-title">Baukästen</h2>
+      <div id="f-box" class="tiles"></div>
+      <h2 class="filter-title">Erweiterungen</h2>
+      <div id="f-ext" class="tiles"></div>
+      <h2 class="filter-title">Schwierigkeit</h2>
+      <div id="f-level" class="tiles"></div>
+      <div class="filter-foot">
+        <button id="filter-reset" class="chip" type="button" aria-label="Filter zurücksetzen">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
+        </button>
+        <button id="filter-done" class="chip chip-go" type="button" aria-label="Fertig">
+          <svg viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></svg>
+          <span id="filter-count"></span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <section id="viewer" class="viewer" hidden>
     <div id="stage" class="stage">

@@ -1,8 +1,9 @@
 # kugelbahn-anleitungen
 
 Eine kleine Web-App, mit der Kinder die Hubelino-Bauanleitungen auf dem Tablet selbst durchblättern können.
-Sie zeigt alle Anleitungen, die sich mit dem **Hubelino Baukasten maxi (420572)** bauen lassen, nicht nur die zwei,
-die dem Kasten beiliegen.
+Sie zeigt alle Hubelino-Anleitungen. Beim Start sind das nur die, die sich mit dem
+**Hubelino Baukasten maxi (420572)** bauen lassen, nicht nur die zwei, die dem Kasten beiliegen.
+Über den Filter kommen weitere Baukästen und Erweiterungen dazu.
 
 Privates Bastelprojekt, kein offizielles Projekt von Hubelino und nicht mit Hubelino verbunden.
 
@@ -10,20 +11,34 @@ Privates Bastelprojekt, kein offizielles Projekt von Hubelino und nicht mit Hube
 
 - **Menü** mit dem Titelbild jeder Bahn, sortiert von einfach nach schwer (nach Teilezahl).
   Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.
+- **Filter** (Knopf oben rechts): große Kacheln für Baukästen, Erweiterungen und Schwierigkeit.
+  Eine Anleitung erscheint, wenn *alle* Teile gewählt sind, die sie braucht: „Maxi“ + „Trichter“ zeigt die
+  Maxi-Bahnen und die Maxi-Trichter-Kombi, aber nicht „Basis + Trichter“. Der Filter wird gespeichert;
+  weicht er vom Standard ab, wird der Filter-Knopf gelb und daneben erscheint ein Knopf zum Zurücksetzen.
+- **Labels** auf jeder Karte: Baukästen in ihrer Farbe mit Kurznamen, Erweiterungen als Symbol.
 - **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
-  Lieblinge erscheinen zusätzlich ganz oben im Menü.
+  Lieblinge erscheinen zusätzlich ganz oben im Menü, unabhängig vom Filter.
 - **Anleitung**: immer genau eine Seite, bildschirmfüllend. Blättern per Wischen oder mit den großen Pfeilen,
   Haus-Knopf zurück zum Menü. Auf der letzten Seite wird der Pfeil zum gelben Haken („fertig“).
 - **Weiterlesen**: Die App merkt sich pro Anleitung die zuletzt angesehene Seite („weiter bei 5“).
   Nach dem Haken auf der letzten Seite beginnt die Anleitung beim nächsten Mal wieder vorn.
 - Zwei-Finger-Zoom auf einer Seite funktioniert, schnelles Doppeltippen auf die Knöpfe blättert statt zu zoomen.
 
-Lieblinge und Fortschritt liegen im `localStorage` des Tablet-Browsers, also nur auf diesem Gerät.
+Lieblinge, Fortschritt und Filter liegen im `localStorage` des Tablet-Browsers, also nur auf diesem Gerät.
 
 ## Welche Anleitungen enthalten sind
 
-Die Liste steht in [`build/anleitungen.json`](build/anleitungen.json). Aufgenommen ist alles, dessen Teileliste
-(Seite 2 jeder PDF) in den Maxi-Kasten passt:
+Alle aus der Hubelino-API außer der Linie „Kugelbahn pi“ (440…), die ein eigenes System mit anderen Teilen ist.
+Neue Anleitungen kommen beim nächsten Build automatisch dazu.
+
+In [`build/anleitungen.json`](build/anleitungen.json) stehen die Baukästen und Erweiterungen (`sets`)
+mit ihren Artikelnummern, Kurznamen, Farben und Symbolen. Aus den Nummern im Anleitungsnamen
+(z. B. `420572_420589-A1`) ergibt sich, was eine Anleitung braucht. Taucht eine unbekannte Nummer auf,
+warnt der Build und die Anleitung bekommt ein graues Label mit der Nummer, bis sie in `sets` eingetragen ist.
+Einzelne Anleitungen lassen sich über `exclude` ausblenden.
+
+Standardmäßig gewählt (`"default": true`) sind Maxi, Basis, Starter und Mini. Ihre Teilelisten
+(Seite 2 jeder PDF) wurden gegen den Maxi-Kasten geprüft, das ergibt diese Startauswahl:
 
 | Set | Anleitungen |
 |---|---|
@@ -32,12 +47,9 @@ Die Liste steht in [`build/anleitungen.json`](build/anleitungen.json). Aufgenomm
 | Starter Set (420145) | A, B, C, D |
 | Baukasten mini (420169) | A, B, C, D |
 
-Bewusst **nicht** enthalten:
-
-- 55- und 128-teilige Bahnelemente-Sets (420473, 420381): brauchen über 100 weiße Bausteine und hohe Steine.
-- 200-teiliger Baukasten (420183), Jubiläums- (420466) und Mega-Baukasten (420633): große Platten und Spezialteile.
-- Alle Kombinationen mit Erweiterungen (Trichter, Weiche, Kugelpumpe, …), weil sie Teile außerhalb des Maxi-Kastens brauchen.
-  Kommt eine Erweiterung dazu, die passende Kombi-Anleitung (z. B. `420572_420589-A1`) in `include` eintragen.
+Nicht mit dem Maxi-Kasten baubar sind z. B. die Bahnelemente-Sets (420473, 420381, brauchen über 100 weiße
+Bausteine und hohe Steine), der 200-teilige, Jubiläums- und Mega-Baukasten (große Platten und Spezialteile)
+und alle Kombinationen mit Erweiterungen.
 
 Die Basis-Anleitungen zeigen zwei kleine Grundplatten. Mit der großen Maxi-Platte baut man beides auf einer Platte.
 
@@ -55,8 +67,8 @@ und an ufw/firewalld vorbei. Läuft der Reverse Proxy auf demselben Rechner, in 
 `"127.0.0.1:8420:80"` eintragen.
 
 Der Build lädt die Anleitungsliste über die WordPress-API von hubelino.de
-(`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (2560 px, ca. 50 MB insgesamt).
-Das dauert 1–2 Minuten. Das fertige Image ist ein schlankes nginx ohne weitere Abhängigkeiten.
+(`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (1920 px an der langen Seite, etwa Tablet-Auflösung).
+Das dauert beim ersten Mal einige Minuten; die PDFs bleiben im BuildKit-Cache, spätere Builds laden sie nicht neu. Das fertige Image ist ein schlankes nginx ohne weitere Abhängigkeiten.
 
 Neue oder geänderte Anleitungen übernehmen: `build/anleitungen.json` anpassen und erneut
 `docker compose up -d --build`.

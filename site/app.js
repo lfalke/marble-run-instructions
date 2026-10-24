@@ -5,17 +5,22 @@ const els = {
   menu: $('menu'), grid: $('grid'), viewer: $('viewer'), stage: $('stage'), page: $('page'),
   home: $('home'), prev: $('prev'), next: $('next'), count: $('count'), bar: $('bar'),
   fullscreen: $('fullscreen'), favs: $('favs'), favsSection: $('favs-section'), allTitle: $('all-title'),
-  viewerStar: $('viewer-star'),
+  viewerStar: $('viewer-star'), reset: $('reset'), openFilter: $('open-filter'), filter: $('filter'),
+  fBox: $('f-box'), fExt: $('f-ext'), fLevel: $('f-level'), filterReset: $('filter-reset'),
+  filterDone: $('filter-done'), filterCount: $('filter-count'), empty: $('empty'), emptyReset: $('empty-reset'),
 };
 const STAR_SVG = els.viewerStar.innerHTML;
 
 let list = [];
+let sets = []; // Baukästen und Erweiterungen aus index.json, in Anzeigereihenfolge
 let current = null; // { item, page }
 let openedFromMenu = false;
+let filterOpenedFromMenu = false;
 
 // ---------- Fortschritt (nur Komfort, darf fehlen) ----------
 const STORE = 'kugelbahn-progress';
 const FAVS = 'kugelbahn-favorites';
+const FILTER = 'kugelbahn-filter';
 // Gespeichertes unter den alten Schlüsseln übernehmen, damit Lieblinge und Fortschritt erhalten bleiben
 try {
   for (const [from, to] of [['hubelino-progress', STORE], ['hubelino-favorites', FAVS]]) {
@@ -52,6 +57,32 @@ function toggleFavorite(id) {
   try { localStorage.setItem(FAVS, JSON.stringify([...favs])); } catch { /* s.o. */ }
   return favs.has(id);
 }
+// Filter: gewählte Baukästen/Erweiterungen und Schwierigkeiten. Ohne Eintrag gilt der Standard
+// aus anleitungen.json, so wirken spätere Änderungen dort auch nach einem Zurücksetzen.
+const LEVELS = [1, 2, 3];
+const defaultFilter = () => ({ sets: sets.filter((s) => s.default).map((s) => s.key), levels: [...LEVELS] });
+function loadFilter() {
+  try {
+    const f = JSON.parse(localStorage.getItem(FILTER));
+    if (Array.isArray(f?.sets) && Array.isArray(f?.levels)) return f;
+  } catch { /* s.o. */ }
+  return defaultFilter();
+}
+function saveFilter(f) {
+  try { localStorage.setItem(FILTER, JSON.stringify(f)); } catch { /* s.o. */ }
+}
+function resetFilter() {
+  try { localStorage.removeItem(FILTER); } catch { /* s.o. */ }
+}
+const sameItems = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+const isDefaultFilter = (f) => {
+  const d = defaultFilter();
+  return sameItems(f.sets, d.sets) && sameItems(f.levels, d.levels);
+};
+// Eine Anleitung erscheint nur, wenn alles gewählt ist, was man für sie braucht
+const matches = (item, f) =>
+  item.components.every((c) => f.sets.includes(c)) && f.levels.includes(item.level);
+
 function setStar(btn, on) {
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', on);
@@ -59,7 +90,25 @@ function setStar(btn, on) {
 }
 
 const src = (item, page) => `data/${item.id}/${page}.jpg?v=${item.rev}`;
-const difficulty = (parts) => (parts <= 50 ? 1 : parts <= 120 ? 2 : 3);
+const ballsHTML = (level) => `
+  <span class="balls" data-level="${level}" aria-label="Schwierigkeit ${level} von 3">
+    ${[1, 2, 3].map((n) => `<i class="${n <= level ? 'on' : ''}"></i>`).join('')}
+  </span>`;
+
+// Baukasten: Farbe + Kurzname, Erweiterung: Icon (die Kinder können noch kaum lesen)
+function setBadge(set, className) {
+  const el = document.createElement('span');
+  el.className = `${className} ${className}-${set.kind}`;
+  if (set.kind === 'ext') {
+    el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${set.icon}</svg>`;
+    el.setAttribute('aria-label', set.name);
+    el.title = set.name;
+  } else {
+    el.style.setProperty('--c', set.color);
+    el.textContent = set.name;
+  }
+  return el;
+}
 
 // ---------- Menü ----------
 function renderMenu() {
@@ -71,21 +120,21 @@ function renderMenu() {
     const btn = document.createElement('button');
     btn.className = 'card';
     btn.type = 'button';
-    const level = difficulty(item.parts);
     const resume = progress[item.id];
     btn.innerHTML = `
       <img src="${src(item, 'cover')}" alt="" loading="lazy">
       <div class="card-body">
         <span class="card-title"></span>
-        <span class="balls" data-level="${level}" aria-label="Schwierigkeit ${level} von 3">
-          ${[1, 2, 3].map((n) => `<i class="${n <= level ? 'on' : ''}"></i>`).join('')}
-        </span>
+        ${ballsHTML(item.level)}
       </div>
+      <div class="card-tags"></div>
       <div class="card-meta">
-        <span>${item.pages} Seiten · ${item.parts} Teile</span>
+        <span>${item.pages} Seiten${item.parts ? ` · ${item.parts} Teile` : ''}</span>
         ${resume ? `<span class="resume">weiter bei ${resume}</span>` : ''}
       </div>`;
     btn.querySelector('.card-title').textContent = item.title;
+    btn.querySelector('.card-tags').append(
+      ...item.components.map((key) => setBadge(sets.find((s) => s.key === key), 'tag')));
     btn.addEventListener('click', () => {
       openedFromMenu = true;
       location.hash = `#/${item.id}/${resume || 1}`;
@@ -102,11 +151,71 @@ function renderMenu() {
     li.append(btn, star);
     return li;
   };
-  // Lieblinge zusätzlich oben, "Alle Bahnen" bleibt unverändert, damit nichts herumspringt
+  // Lieblinge zusätzlich oben und unabhängig vom Filter, damit kein gesternter Liebling verschwindet
   const favItems = list.filter((item) => favs.has(item.id));
   els.favsSection.hidden = els.allTitle.hidden = favItems.length === 0;
   els.favs.replaceChildren(...favItems.map(card));
-  els.grid.replaceChildren(...list.map(card));
+  const filter = loadFilter();
+  const shown = list.filter((item) => matches(item, filter));
+  els.grid.replaceChildren(...shown.map(card));
+  els.empty.hidden = shown.length > 0;
+  const changed = !isDefaultFilter(filter);
+  els.openFilter.classList.toggle('active', changed);
+  els.reset.hidden = !changed;
+  if (!els.filter.hidden) renderFilter(filter, shown.length);
+}
+
+// ---------- Filter ----------
+function renderFilter(filter, count) {
+  const tile = (content, on, toggle) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tile';
+    btn.setAttribute('aria-pressed', on);
+    btn.append(content);
+    btn.addEventListener('click', () => {
+      toggle();
+      saveFilter(filter);
+      renderMenu();
+    });
+    return btn;
+  };
+  const toggleIn = (arr, x) => {
+    const i = arr.indexOf(x);
+    if (i >= 0) arr.splice(i, 1); else arr.push(x);
+  };
+  const setTiles = (kind) => sets.filter((s) => s.kind === kind).map((s) => {
+    const content = document.createDocumentFragment();
+    content.append(setBadge(s, 'tile-badge'));
+    if (s.kind === 'ext') content.append(Object.assign(document.createElement('span'), { textContent: s.name }));
+    return tile(content, filter.sets.includes(s.key), () => toggleIn(filter.sets, s.key));
+  });
+  els.fBox.replaceChildren(...setTiles('box'));
+  els.fExt.replaceChildren(...setTiles('ext'));
+  els.fLevel.replaceChildren(...LEVELS.map((level) => {
+    const content = document.createElement('span');
+    content.innerHTML = ballsHTML(level);
+    return tile(content, filter.levels.includes(level), () => toggleIn(filter.levels, level));
+  }));
+  els.filterCount.textContent = count;
+  els.filterDone.setAttribute('aria-label', `Fertig, ${count} Bahnen`);
+}
+
+function closeFilter() {
+  if (filterOpenedFromMenu) history.back();
+  else location.replace('#/');
+}
+els.openFilter.addEventListener('click', () => {
+  filterOpenedFromMenu = true;
+  location.hash = '#/filter';
+});
+els.filterDone.addEventListener('click', closeFilter);
+els.filter.addEventListener('click', (e) => { if (e.target === els.filter) closeFilter(); });
+for (const btn of [els.reset, els.filterReset, els.emptyReset]) {
+  btn.addEventListener('click', () => {
+    resetFilter();
+    renderMenu();
+  });
 }
 
 function goHome() {
@@ -235,6 +344,7 @@ onTap(els.viewerStar, () => {
   if (current) setStar(els.viewerStar, toggleFavorite(current.item.id));
 });
 document.addEventListener('keydown', (e) => {
+  if (!els.filter.hidden && e.key === 'Escape') closeFilter();
   if (els.viewer.hidden) return;
   if (e.key === 'ArrowRight') step(1);
   else if (e.key === 'ArrowLeft') step(-1);
@@ -276,6 +386,8 @@ function route() {
     openedFromMenu = false;
     els.viewer.hidden = true;
     els.menu.hidden = false;
+    els.filter.hidden = location.hash !== '#/filter';
+    if (els.filter.hidden) filterOpenedFromMenu = false;
     keepAwake(false);
     renderMenu();
     return;
@@ -284,6 +396,7 @@ function route() {
   const dir = lastRoute && lastRoute.id === item.id ? Math.sign(page - lastRoute.page) : 0;
   lastRoute = { id: item.id, page };
   els.menu.hidden = true;
+  els.filter.hidden = true;
   els.viewer.hidden = false;
   keepAwake(true);
   showPage(item, page, dir);
@@ -292,7 +405,8 @@ function route() {
 fetch('data/index.json')
   .then((r) => r.json())
   .then((data) => {
-    list = data;
+    list = data.items;
+    sets = data.sets;
     window.addEventListener('hashchange', route);
     route();
   })

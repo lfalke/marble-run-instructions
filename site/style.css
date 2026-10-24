@@ -33,18 +33,29 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   background: linear-gradient(135deg, #1f6b34, #8dbb3a);
 }
 .menu-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
   max-width: 1400px; margin: 0 auto 16px;
 }
 .menu-head h1 {
   margin: 0; color: #fff; font-size: clamp(28px, 4vw, 44px); font-weight: 800;
   text-shadow: 0 2px 6px rgba(0, 0, 0, .25);
 }
+.head-actions { display: flex; align-items: center; gap: 10px; }
 .chip {
-  border: 0; border-radius: 999px; padding: 10px 18px;
+  border: 0; border-radius: 999px; padding: 10px 18px; min-height: 48px;
   background: var(--btn); color: var(--btn-ink); font-weight: 700; font-size: 18px;
   box-shadow: var(--shadow);
+  display: inline-flex; align-items: center; gap: 8px;
 }
+.chip svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.chip:active { transform: scale(.95); }
+/* Filter weicht vom Standard ab: deutlich sichtbar, damit niemand eine unerwartet kurze Liste wundert */
+.chip.active { background: var(--yellow); color: var(--ink); }
+.chip-reset { padding: 10px 12px; }
+.chip-big { font-size: 22px; padding: 16px 28px; }
+.chip-big svg { width: 32px; height: 32px; }
+.chip-go { background: var(--btn-ink); color: #fff; font-size: 22px; padding: 12px 26px; }
+.empty { display: flex; justify-content: center; padding: 48px 0; }
 
 .section-title {
   max-width: 1400px; margin: 8px auto 12px; color: #fff; font-size: 24px; font-weight: 800;
@@ -73,6 +84,14 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .balls[data-level="1"] i.on { background: radial-gradient(circle at 35% 32%, #8fe39e, var(--green) 45%, #1b6a2b); }
 .balls[data-level="2"] i.on { background: radial-gradient(circle at 35% 32%, #fff3a6, var(--yellow) 45%, #b38900); }
 .balls[data-level="3"] i.on { background: radial-gradient(circle at 35% 32%, #ff8a80, var(--red) 45%, #8f0f0a); }
+.card-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.tag {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px;
+  background: var(--c); color: #fff; font-size: 15px; font-weight: 800;
+}
+.tag-ext { padding: 0 8px; background: var(--yellow); color: var(--ink); }
+.tag svg, .tile-badge svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tag svg { width: 22px; height: 22px; }
 .card-meta { padding: 0 14px 12px; color: var(--muted); font-size: 15px; display: flex; justify-content: space-between; }
 .resume { color: var(--btn-ink); font-weight: 700; }
 
@@ -86,6 +105,43 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .star svg { width: 34px; height: 34px; fill: none; stroke: #9aa59e; stroke-width: 2; stroke-linejoin: round; }
 .star.on svg { fill: var(--yellow); stroke: #c79a00; }
 .star-card { position: absolute; top: 10px; left: 10px; }
+
+/* ---------- Filter ---------- */
+.filter {
+  position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, .5);
+  display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+}
+.filter-sheet {
+  width: 100%; max-width: 1000px; max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--card); border-radius: 24px; padding: 8px 20px 20px; box-shadow: var(--shadow);
+}
+.filter-title { margin: 16px 0 10px; font-size: 20px; font-weight: 800; color: var(--muted); }
+.tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.tile {
+  position: relative; min-height: 88px; padding: 10px; border-radius: 18px;
+  border: 4px solid transparent; background: #eef1ef; color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  font-size: 15px; font-weight: 700;
+}
+.tile:active { transform: scale(.95); }
+/* Abgewählt: blass (Farbe bleibt erkennbar, die Kinder suchen danach), gewählt: grüner Rahmen mit Haken */
+.tile[aria-pressed="false"] > * { opacity: .4; }
+.tile[aria-pressed="true"] { border-color: var(--btn-ink); background: #e3f3e6; }
+.tile[aria-pressed="true"]::after {
+  content: "✓"; position: absolute; top: -10px; right: -10px; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--btn-ink); color: #fff; font-size: 18px; line-height: 30px; text-align: center;
+}
+.tile-badge-box {
+  align-self: stretch; padding: 14px 6px; border-radius: 12px; text-align: center;
+  background: var(--c); color: #fff; font-size: 18px; font-weight: 800;
+}
+.tile-badge-ext svg { width: 48px; height: 48px; }
+.tile .balls i { width: 26px; height: 26px; }
+.filter-foot {
+  position: sticky; bottom: -20px; margin: 20px -20px -20px; padding: 14px 20px 20px;
+  background: var(--card); display: flex; justify-content: space-between; align-items: center;
+}
 
 /* ---------- Viewer ---------- */
 .viewer { position: fixed; inset: 0; background: #2a7a3a; overflow: hidden; }
