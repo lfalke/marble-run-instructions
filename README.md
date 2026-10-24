@@ -9,9 +9,7 @@ A private hobby project, not affiliated with Hubelino or the LEGO Group.
 
 <img src="docs/demo.webp" alt="Marking a favorite, adding the Twister expansion in the filter, paging through a run and returning to the menu, where it shows 'continue at 3'" width="100%">
 
-<img src="docs/menu.jpg" alt="The menu with a favorite at the top and cards showing difficulty, set labels and progress (covers blurred)" width="49%"> <img src="docs/filter.png" alt="The filter: building boxes as colored labels, expansions as icons, difficulty as traffic-light balls" width="49%">
-
-Covers and pages are only blurred in these previews, because they are Hubelino's artwork. The app shows them sharp.
+Covers and pages are only blurred in this preview, because they are Hubelino's artwork. The app shows them sharp.
 
 ## Features
 
