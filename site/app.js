@@ -42,7 +42,7 @@ function setStar(btn, on) {
   btn.setAttribute('aria-label', on ? 'Kein Liebling mehr' : 'Als Liebling merken');
 }
 
-const src = (id, page) => `data/${id}/${page}.jpg`;
+const src = (item, page) => `data/${item.id}/${page}.jpg?v=${item.rev}`;
 const difficulty = (parts) => (parts <= 50 ? 1 : parts <= 120 ? 2 : 3);
 
 // ---------- Menü ----------
@@ -58,7 +58,7 @@ function renderMenu() {
     const level = difficulty(item.parts);
     const resume = progress[item.id];
     btn.innerHTML = `
-      <img src="data/${item.id}/cover.jpg" alt="" loading="lazy">
+      <img src="${src(item, 'cover')}" alt="" loading="lazy">
       <div class="card-body">
         <span class="card-title"></span>
         <span class="balls" data-level="${level}" aria-label="Schwierigkeit ${level} von 3">
@@ -99,9 +99,9 @@ function goHome() {
 }
 
 // ---------- Viewer ----------
-function preload(id, pages, page) {
+function preload(item, page) {
   for (const p of [page + 1, page - 1, page + 2]) {
-    if (p >= 1 && p <= pages) new Image().src = src(id, p);
+    if (p >= 1 && p <= item.pages) new Image().src = src(item, p);
   }
 }
 
@@ -109,7 +109,7 @@ function showPage(item, page, dir = 0) {
   current = { item, page };
   const img = els.page;
   const swap = () => {
-    img.src = src(item.id, page);
+    img.src = src(item, page);
     img.alt = `${item.title}, Seite ${page} von ${item.pages}`;
   };
 
@@ -144,7 +144,7 @@ function showPage(item, page, dir = 0) {
   setStar(els.viewerStar, loadFavorites().has(item.id));
   els.bar.style.width = `${(page / item.pages) * 100}%`;
   saveProgress(item.id, page);
-  preload(item.id, item.pages, page);
+  preload(item, page);
 }
 
 function step(dir) {

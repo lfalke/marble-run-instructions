@@ -48,7 +48,7 @@ Der Container lauscht auf Port 8080. Für die Installation auf dem Tablet brauch
 also einen Reverse Proxy mit Zertifikat davor, z. B. Caddy oder Traefik.
 
 Der Build lädt die Anleitungsliste über die WordPress-API von hubelino.de
-(`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (1920 px, ca. 30 MB insgesamt).
+(`/wp-json/wp/v2/anleitungen`), lädt die PDFs und rendert jede Seite als JPEG (2560 px, ca. 50 MB insgesamt).
 Das dauert 1–2 Minuten. Das fertige Image ist ein schlankes nginx ohne weitere Abhängigkeiten.
 
 Neue oder geänderte Anleitungen übernehmen: `build/anleitungen.json` anpassen und erneut

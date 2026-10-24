@@ -5,15 +5,17 @@ Benoetigt poppler-utils (pdfinfo, pdftoppm, pdftotext). Erneutes Ausfuehren ist 
 bereits geladene PDFs und gerenderte Seiten werden uebersprungen.
 """
 import argparse
+import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
 import urllib.request
 from pathlib import Path
 
 API = "https://www.hubelino.de/wp-json/wp/v2/anleitungen?_fields=acf&per_page=100"
-PAGE_PX = 1920  # laengere Seitenkante; reicht fuer Tablet-Displays
+PAGE_PX = 2560  # laengere Seitenkante; Reserve fuer Zwei-Finger-Zoom auf dem Tablet
 THUMB_PX = 640
 UA = {"User-Agent": "hubelino-tablet/1.0 (private use)"}
 
@@ -85,12 +87,19 @@ def main():
             pdf.write_bytes(fetch(url))
 
         pages, w, h = page_info(pdf)
+        # Cache-Buster fuer den Browser (Bilder werden als immutable ausgeliefert); aendert sich
+        # mit PDF-Quelle oder Aufloesung und loest dann auch hier ein Neurendern aus
+        rev = hashlib.sha1(f"{url}|{PAGE_PX}|{THUMB_PX}".encode()).hexdigest()[:8]
         out = args.out / name
+        stamp = out / ".rev"
+        if out.exists() and (not stamp.exists() or stamp.read_text() != rev):
+            shutil.rmtree(out)
         out.mkdir(exist_ok=True)
         print(f"rendere {name} ({pages} Seiten)")
         for p in range(1, pages + 1):
             render(pdf, p, out / f"{p}.jpg", PAGE_PX)
         render(pdf, 1, out / "cover.jpg", THUMB_PX)
+        stamp.write_text(rev)
 
         group = cfg["groups"].get(name[:6], "")
         result.append({
@@ -100,6 +109,7 @@ def main():
             "pages": pages,
             "parts": count_parts(pdf, pages),
             "landscape": w > h,
+            "rev": rev,
         })
 
     result.sort(key=lambda r: (r["parts"], r["id"]))
