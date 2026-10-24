@@ -352,19 +352,34 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ---------- Bildschirm anlassen (nur über HTTPS/localhost verfügbar) ----------
+// Promise der laufenden Anfrage, damit schnelle Tipps nicht mehrere Locks anfordern
 let wakeLock = null;
 async function keepAwake(on) {
   try {
     if (on && !wakeLock && navigator.wakeLock) {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { wakeLock = null; });
+      wakeLock = navigator.wakeLock.request('screen');
+      (await wakeLock).addEventListener('release', () => { wakeLock = null; });
     } else if (!on && wakeLock) {
-      await wakeLock.release();
+      await (await wakeLock).release();
     }
-  } catch { /* nicht verfügbar */ }
+  } catch { wakeLock = null; /* nicht verfügbar */ }
 }
+// Ohne Berührung darf der Bildschirm nach 10 Minuten wieder ausgehen, falls das Tablet vergessen wird
+const AWAKE_MS = 10 * 60 * 1000;
+let idleTimer = null;
+function stayAwake() {
+  clearTimeout(idleTimer);
+  if (els.viewer.hidden) {
+    keepAwake(false);
+    return;
+  }
+  keepAwake(true);
+  idleTimer = setTimeout(() => keepAwake(false), AWAKE_MS);
+}
+document.addEventListener('pointerdown', stayAwake, { passive: true });
+document.addEventListener('keydown', stayAwake);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && !els.viewer.hidden) keepAwake(true);
+  if (document.visibilityState === 'visible') stayAwake();
 });
 
 // ---------- Vollbild ----------
@@ -388,7 +403,7 @@ function route() {
     els.menu.hidden = false;
     els.filter.hidden = location.hash !== '#/filter';
     if (els.filter.hidden) filterOpenedFromMenu = false;
-    keepAwake(false);
+    stayAwake();
     renderMenu();
     return;
   }
@@ -398,7 +413,7 @@ function route() {
   els.menu.hidden = true;
   els.filter.hidden = true;
   els.viewer.hidden = false;
-  keepAwake(true);
+  stayAwake();
   showPage(item, page, dir);
 }
 
