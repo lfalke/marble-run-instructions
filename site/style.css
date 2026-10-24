@@ -142,6 +142,17 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   position: sticky; bottom: -20px; margin: 20px -20px -20px; padding: 14px 20px 20px;
   background: var(--card); display: flex; justify-content: space-between; align-items: center;
 }
+/* Language: meant for the parents, so smaller than the rest; flags work without reading */
+.lang { display: flex; padding: 4px; border-radius: 999px; background: #eef1ef; }
+.lang button { border: 0; border-radius: 999px; padding: 8px 14px; min-height: 40px; background: none; display: flex; }
+.lang svg { width: 40px; height: 24px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .15); }
+.lang button[aria-pressed="false"] svg { opacity: .4; }
+.lang button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+/* Phones: not enough room for all three, the language moves to its own row below */
+@media (max-width: 480px) {
+  .filter-foot { flex-wrap: wrap; row-gap: 12px; }
+  .lang { order: 1; margin: 0 auto; }
+}
 
 /* ---------- Viewer ---------- */
 .viewer { position: fixed; inset: 0; background: #2a7a3a; overflow: hidden; }

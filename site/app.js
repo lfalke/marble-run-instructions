@@ -8,15 +8,16 @@ const els = {
   viewerStar: $('viewer-star'), reset: $('reset'), openFilter: $('open-filter'), filter: $('filter'),
   fBox: $('f-box'), fExt: $('f-ext'), fLevel: $('f-level'), filterReset: $('filter-reset'),
   filterDone: $('filter-done'), filterCount: $('filter-count'), empty: $('empty'), emptyReset: $('empty-reset'),
+  lang: $('lang'),
 };
 const STAR_SVG = els.viewerStar.innerHTML;
 
-// ---------- Language (follows the browser, no switch in the app) ----------
+// ---------- Language (follows the browser unless chosen in the filter) ----------
 const TEXT = {
   en: {
     title: 'Marble Run Instructions', heading: 'Marble runs', filter: 'Filter', resetFilter: 'Reset filter',
     fullscreen: 'Fullscreen', favorites: 'Favorites', allRuns: 'All runs', resetAll: 'Reset everything',
-    boxes: 'Building boxes', expansions: 'Expansions', difficulty: 'Difficulty', home: 'Back to the menu',
+    boxes: 'Building boxes', expansions: 'Expansions', difficulty: 'Difficulty', language: 'Language', home: 'Back to the menu',
     prev: 'Previous page', next: 'Next page', finish: 'Done, back to the menu',
     favAdd: 'Add to favorites', favRemove: 'Remove from favorites',
     level: (n) => `Difficulty ${n} of 3`, pages: (n) => `${n} pages`, parts: (n) => `${n} parts`,
@@ -27,7 +28,7 @@ const TEXT = {
   de: {
     title: 'Kugelbahn Anleitungen', heading: 'Kugelbahnen', filter: 'Filter', resetFilter: 'Filter zurücksetzen',
     fullscreen: 'Vollbild', favorites: 'Lieblinge', allRuns: 'Alle Bahnen', resetAll: 'Alles zurücksetzen',
-    boxes: 'Baukästen', expansions: 'Erweiterungen', difficulty: 'Schwierigkeit', home: 'Zurück zum Menü',
+    boxes: 'Baukästen', expansions: 'Erweiterungen', difficulty: 'Schwierigkeit', language: 'Sprache', home: 'Zurück zum Menü',
     prev: 'Vorherige Seite', next: 'Nächste Seite', finish: 'Fertig, zurück zum Menü',
     favAdd: 'Als Liebling merken', favRemove: 'Kein Liebling mehr',
     level: (n) => `Schwierigkeit ${n} von 3`, pages: (n) => `${n} Seiten`, parts: (n) => `${n} Teile`,
@@ -36,13 +37,23 @@ const TEXT = {
     loadError: 'Die Anleitungen konnten nicht geladen werden.',
   },
 };
-const LANG = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
-const t = TEXT[LANG];
+const LANG = 'marble-run-lang';
+let lang = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
+try {
+  const chosen = localStorage.getItem(LANG);
+  if (TEXT[chosen]) lang = chosen;
+} catch { /* private mode or similar */ }
+let t = TEXT[lang];
 // Set names and titles from index.json come with one entry per language
-const tr = (names) => names[LANG] ?? names.en;
-document.documentElement.lang = LANG;
-for (const el of document.querySelectorAll('[data-t]')) el.textContent = t[el.dataset.t];
-for (const el of document.querySelectorAll('[data-t-label]')) el.setAttribute('aria-label', t[el.dataset.tLabel]);
+const tr = (names) => names[lang] ?? names.en;
+function applyLanguage() {
+  t = TEXT[lang];
+  document.documentElement.lang = lang;
+  for (const el of document.querySelectorAll('[data-t]')) el.textContent = t[el.dataset.t];
+  for (const el of document.querySelectorAll('[data-t-label]')) el.setAttribute('aria-label', t[el.dataset.tLabel]);
+  for (const btn of els.lang.children) btn.setAttribute('aria-pressed', btn.dataset.lang === lang);
+}
+applyLanguage();
 
 let list = [];
 let sets = []; // building boxes and expansions from index.json, in display order
@@ -249,6 +260,14 @@ els.openFilter.addEventListener('click', () => {
 });
 els.filterDone.addEventListener('click', closeFilter);
 els.filter.addEventListener('click', (e) => { if (e.target === els.filter) closeFilter(); });
+for (const btn of els.lang.children) {
+  btn.addEventListener('click', () => {
+    lang = btn.dataset.lang;
+    try { localStorage.setItem(LANG, lang); } catch { /* see above */ }
+    applyLanguage();
+    renderMenu();
+  });
+}
 for (const btn of [els.reset, els.filterReset, els.emptyReset]) {
   btn.addEventListener('click', () => {
     resetFilter();

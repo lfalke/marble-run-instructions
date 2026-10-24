@@ -55,6 +55,21 @@
         <button id="filter-reset" class="chip" type="button" aria-label="Reset filter" data-t-label="resetFilter">
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>
         </button>
+        <div id="lang" class="lang" role="group" aria-label="Language" data-t-label="language">
+          <button type="button" data-lang="de" lang="de" aria-label="Deutsch">
+            <svg viewBox="0 0 5 3"><path fill="#000" d="M0 0h5v1H0z"/><path fill="#dd0000" d="M0 1h5v1H0z"/><path fill="#ffce00" d="M0 2h5v1H0z"/></svg>
+          </button>
+          <button type="button" data-lang="en" lang="en" aria-label="English">
+            <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice">
+              <clipPath id="uk-diag"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath>
+              <path fill="#012169" d="M0 0h60v30H0z"/>
+              <path stroke="#fff" stroke-width="6" d="M0 0l60 30m0-30L0 30"/>
+              <path stroke="#c8102e" stroke-width="4" clip-path="url(#uk-diag)" d="M0 0l60 30m0-30L0 30"/>
+              <path stroke="#fff" stroke-width="10" d="M30 0v30M0 15h60"/>
+              <path stroke="#c8102e" stroke-width="6" d="M30 0v30M0 15h60"/>
+            </svg>
+          </button>
+        </div>
         <button id="filter-done" class="chip chip-go" type="button" aria-label="Done">
           <svg viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></svg>
           <span id="filter-count"></span>

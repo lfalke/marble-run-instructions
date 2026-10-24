@@ -18,7 +18,7 @@ Covers and pages are only blurred in this preview, because they are Hubelino's a
 - Filter by building box, expansion and difficulty. A run appears when *all* sets it needs are selected.
 - One page per screen: swipe or tap the large arrows, pinch to zoom. The app remembers the last page of each run.
 - Favorites (star) stay at the top of the menu regardless of the filter.
-- German if the browser is set to German, English otherwise.
+- German or English, following the browser. A switch in the filter changes it.
 
 Favorites, progress and filter live in the browser's `localStorage` on the tablet.
 
