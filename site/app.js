@@ -384,7 +384,10 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------- Vollbild ----------
 const root = document.documentElement;
-if (!root.requestFullscreen) els.fullscreen.hidden = true;
+// Als installierte App läuft sie schon im Vollbild (Manifest). Nur beim Start prüfen: Ein Tab im
+// Vollbild meldet ebenfalls display-mode: fullscreen, dort muss der Knopf zum Verlassen bleiben.
+const installed = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+if (!root.requestFullscreen || installed) els.fullscreen.hidden = true;
 els.fullscreen.addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
   else root.requestFullscreen().catch(() => {});
