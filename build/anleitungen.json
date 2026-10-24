@@ -1,0 +1,19 @@
+{
+  "_comment": "Anleitungen, die sich mit dem Baukasten maxi (420572) bauen lassen. Teilelisten (Seite 2 jeder PDF) wurden gegen die Maxi-Teilelisten A1-E2 geprueft.",
+  "groups": {
+    "420572": "Maxi",
+    "420480": "Basis",
+    "420008": "Basis",
+    "420145": "Starter",
+    "420169": "Mini"
+  },
+  "titles": {
+    "420008-C1": "Basis Kurven"
+  },
+  "include": [
+    "420572-A1", "420572-B1", "420572-C1", "420572-D1", "420572-E2",
+    "420480-A1", "420480-B1", "420480-C1", "420480-D1", "420008-C1",
+    "420145-A2", "420145-B2", "420145-C2", "420145-D2",
+    "420169-A2", "420169-B1", "420169-C1", "420169-D1"
+  ]
+}

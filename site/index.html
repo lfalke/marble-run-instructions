@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6b34">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Kugelbahn Anleitungen</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="menu" class="menu" hidden>
+    <header class="menu-head">
+      <h1>Kugelbahnen</h1>
+      <button id="fullscreen" class="chip" type="button" aria-label="Vollbild">⛶ Vollbild</button>
+    </header>
+    <section id="favs-section" hidden>
+      <h2 class="section-title">★ Lieblinge</h2>
+      <ul id="favs" class="grid"></ul>
+    </section>
+    <section>
+      <h2 id="all-title" class="section-title" hidden>Alle Bahnen</h2>
+      <ul id="grid" class="grid"></ul>
+    </section>
+  </main>
+
+  <section id="viewer" class="viewer" hidden>
+    <div id="stage" class="stage">
+      <img id="page" class="page" alt="">
+    </div>
+    <button id="home" class="btn btn-home" type="button" aria-label="Zurück zum Menü">
+      <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h5v-6h3v6h5V9.5"/></svg>
+    </button>
+    <button id="prev" class="btn btn-prev" type="button" aria-label="Vorherige Seite">
+      <svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8"/></svg>
+    </button>
+    <button id="next" class="btn btn-next" type="button" aria-label="Nächste Seite">
+      <svg class="i-next" viewBox="0 0 24 24"><path d="m9 4 8 8-8 8"/></svg>
+      <svg class="i-done" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></svg>
+    </button>
+    <div class="topright">
+      <button id="viewer-star" class="star" type="button" aria-pressed="false" aria-label="Als Liebling merken">
+        <svg viewBox="0 0 24 24"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z"/></svg>
+      </button>
+      <div class="counter"><span id="count"></span></div>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

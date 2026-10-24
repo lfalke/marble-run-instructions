@@ -1,0 +1,7 @@
+services:
+  kugelbahn:
+    build: .
+    container_name: kugelbahn
+    ports:
+      - "8080:80"
+    restart: unless-stopped
