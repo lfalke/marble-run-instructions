@@ -17,7 +17,7 @@ from pathlib import Path
 API = "https://www.hubelino.de/wp-json/wp/v2/anleitungen?_fields=acf&per_page=100"
 PAGE_PX = 2560  # laengere Seitenkante; Reserve fuer Zwei-Finger-Zoom auf dem Tablet
 THUMB_PX = 640
-UA = {"User-Agent": "hubelino-tablet/1.0 (private use)"}
+UA = {"User-Agent": "kugelbahn-anleitungen/1.0 (private use; +https://github.com/lfalke/kugelbahn-anleitungen)"}
 
 
 def fetch(url):

@@ -1,13 +1,16 @@
-# Kugelbahn-Anleitungen fürs Tablet
+# kugelbahn-anleitungen
 
 Eine kleine Web-App, mit der Kinder die Hubelino-Bauanleitungen auf dem Tablet selbst durchblättern können.
 Sie zeigt alle Anleitungen, die sich mit dem **Hubelino Baukasten maxi (420572)** bauen lassen, nicht nur die zwei,
 die dem Kasten beiliegen.
 
+Privates Bastelprojekt, kein offizielles Projekt von Hubelino und nicht mit Hubelino verbunden.
+
 ## Was die App kann
 
 - **Menü** mit dem Titelbild jeder Bahn, sortiert von einfach nach schwer (nach Teilezahl).
-  Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.- **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
+  Kugeln in Ampelfarben zeigen die Schwierigkeit: 1 grüne bis 50 Teile, 2 gelbe bis 120 Teile, 3 rote darüber.
+- **Lieblinge**: Mit dem Stern (auf der Karte oder in der Anleitung oben rechts) merkt man sich eine Bahn.
   Lieblinge erscheinen zusätzlich ganz oben im Menü.
 - **Anleitung**: immer genau eine Seite, bildschirmfüllend. Blättern per Wischen oder mit den großen Pfeilen,
   Haus-Knopf zurück zum Menü. Auf der letzten Seite wird der Pfeil zum gelben Haken („fertig“).
@@ -33,7 +36,7 @@ Bewusst **nicht** enthalten:
 
 - 55- und 128-teilige Bahnelemente-Sets (420473, 420381): brauchen über 100 weiße Bausteine und hohe Steine.
 - 200-teiliger Baukasten (420183), Jubiläums- (420466) und Mega-Baukasten (420633): große Platten und Spezialteile.
-- Alle Kombinationen mit Erweiterungen (Trichter, Weiche, Kugelpumpe, …), weil wir keine haben.
+- Alle Kombinationen mit Erweiterungen (Trichter, Weiche, Kugelpumpe, …), weil sie Teile außerhalb des Maxi-Kastens brauchen.
   Kommt eine Erweiterung dazu, die passende Kombi-Anleitung (z. B. `420572_420589-A1`) in `include` eintragen.
 
 Die Basis-Anleitungen zeigen zwei kleine Grundplatten. Mit der großen Maxi-Platte baut man beides auf einer Platte.
@@ -87,3 +90,10 @@ Dockerfile, compose.yaml  Build in zwei Stufen: Python + poppler rendert, nginx 
 
 Die Anleitungen sind urheberrechtlich geschütztes Material von Hubelino. Deshalb sind sie nicht im Repo,
 sondern werden beim Build geladen, und die App ist nur für den privaten Gebrauch im eigenen Netz gedacht.
+Das fertige Docker-Image enthält die gerenderten Seiten und sollte deshalb nicht veröffentlicht werden
+(keine Registry, kein öffentlich erreichbarer Server).
+
+## Lizenz
+
+Der Code steht unter der [MIT-Lizenz](LICENSE). Sie gilt nur für den Code in diesem Repo,
+nicht für die Anleitungen, Bilder und Marken von Hubelino.
