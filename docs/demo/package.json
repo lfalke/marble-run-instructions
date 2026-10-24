@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Records docs/demo.webp, see record.sh",
+  "dependencies": {
+    "playwright-core": "1.47.2"
+  }
+}

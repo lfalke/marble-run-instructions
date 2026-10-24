@@ -7,7 +7,7 @@ Hubelino bricks are compatible with LEGO® DUPLO® bricks, so the runs can be ex
 
 A private hobby project, not affiliated with Hubelino or the LEGO Group.
 
-<img src="docs/demo.webp" alt="Marking a favorite, adding the Twister expansion in the filter, paging through a run and returning to the menu, where it shows 'continue at 3'" width="100%">
+<img src="docs/demo.webp" alt="Marking a favorite, adding the Twister expansion in the filter, switching the language to German and back, paging through a run and returning to the menu, where it shows 'continue at 3'" width="100%">
 
 Covers and pages are only blurred in this preview, because they are Hubelino's artwork. The app shows them sharp.
 
@@ -56,6 +56,9 @@ python3 -m http.server -d site 8420
 ```
 
 `build/build.py` writes the pages and `index.json` to `site/data/`. The app in `site/` has no framework or build step.
+
+`docs/demo/record.sh` re-records the demo above (`docs/demo.webp`) after UI changes.
+It needs Node, ffmpeg and Google Chrome; the steps it plays through are in `docs/demo/record.js`.
 
 ## Copyright and license
 

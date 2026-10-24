@@ -1,0 +1,26 @@
+<!-- Inserted before </head> of a copy of site/index.html, only for the recording -->
+<style>
+/* Hubelino's covers and pages stay out of the published recording */
+.card{position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;aspect-ratio:640/453;backdrop-filter:blur(16px);pointer-events:none}
+#page{filter:blur(22px)}
+/* Hidden in the installed app as well */
+#fullscreen{display:none}
+#tap{position:fixed;left:0;top:0;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;background:rgba(20,20,20,.3);border:4px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.35);pointer-events:none;z-index:2147483647;opacity:0;transition:opacity .3s,transform .12s}
+#tap.on{opacity:1}
+#tap.down{transform:scale(.8);background:rgba(20,20,20,.45)}
+</style>
+<script>
+// Tap marker: shown and hidden by record.js, follows the pointer while pressed
+addEventListener('DOMContentLoaded', () => {
+  const t = document.createElement('div'); t.id = 'tap'; document.body.append(t);
+  const at = (x, y) => { t.style.left = x + 'px'; t.style.top = y + 'px'; };
+  window.tapMarker = {
+    show: (x, y) => { at(x, y); t.classList.add('on'); },
+    hide: () => t.classList.remove('on'),
+  };
+  addEventListener('pointerdown', (e) => { at(e.clientX, e.clientY); t.classList.add('down'); }, true);
+  addEventListener('pointermove', (e) => { if (t.classList.contains('down')) at(e.clientX, e.clientY); }, true);
+  addEventListener('pointerup', () => t.classList.remove('down'), true);
+});
+</script>
