@@ -7,7 +7,9 @@ Hubelino bricks are compatible with LEGO® DUPLO® bricks, so the runs can be ex
 
 A private hobby project, not affiliated with Hubelino or the LEGO Group.
 
-<img src="docs/filter.png" alt="The filter: building boxes as colored labels, expansions as icons, difficulty as traffic-light balls" width="640">
+<img src="docs/menu.jpg" alt="The menu with a favorite at the top and cards showing difficulty, set labels and progress (covers blurred)" width="49%"> <img src="docs/filter.png" alt="The filter: building boxes as colored labels, expansions as icons, difficulty as traffic-light balls" width="49%">
+
+The covers are blurred here because they are Hubelino's artwork.
 
 ## Features
 
