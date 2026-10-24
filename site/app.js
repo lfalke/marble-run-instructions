@@ -15,10 +15,18 @@ let openedFromMenu = false;
 
 // ---------- Fortschritt (nur Komfort, darf fehlen) ----------
 const STORE = 'hubelino-progress';
+// Seite 1 ist das Titelbild, Seite 2 die Teileliste: erst ab dem ersten Bauschritt gibt es etwas fortzusetzen
+const MIN_RESUME_PAGE = 3;
 function loadProgress() {
-  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; }
+  try {
+    const p = JSON.parse(localStorage.getItem(STORE)) || {};
+    for (const id in p) if (p[id] < MIN_RESUME_PAGE) delete p[id];
+    return p;
+  } catch { return {}; }
 }
 function saveProgress(id, page) {
+  // Kurz zurück zur Teileliste blättern soll den gespeicherten Stand nicht verwerfen
+  if (page && page < MIN_RESUME_PAGE) return;
   try {
     const p = loadProgress();
     if (page) p[id] = page; else delete p[id];
