@@ -4,7 +4,7 @@ A small web app that lets kids browse the Hubelino building instructions on a ta
 It shows all Hubelino instructions. At startup these are only the ones that can be built with the
 **Hubelino Big Building Box (Baukasten maxi, 420572)**, not just the two that come with the box.
 More building boxes and expansions can be added with the filter.
-Hubelino bricks are compatible with LEGO® DUPLO® bricks, so the runs can be extended with DUPLO.
+Hubelino bricks are compatible with LEGO® DUPLO® bricks, so the runs can be extended with them.
 
 A private hobby project, not an official Hubelino project and not affiliated with Hubelino or the LEGO Group.
 
