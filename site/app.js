@@ -14,7 +14,16 @@ let current = null; // { item, page }
 let openedFromMenu = false;
 
 // ---------- Fortschritt (nur Komfort, darf fehlen) ----------
-const STORE = 'hubelino-progress';
+const STORE = 'kugelbahn-progress';
+const FAVS = 'kugelbahn-favorites';
+// Gespeichertes unter den alten Schlüsseln übernehmen, damit Lieblinge und Fortschritt erhalten bleiben
+try {
+  for (const [from, to] of [['hubelino-progress', STORE], ['hubelino-favorites', FAVS]]) {
+    const old = localStorage.getItem(from);
+    if (old !== null && localStorage.getItem(to) === null) localStorage.setItem(to, old);
+    localStorage.removeItem(from);
+  }
+} catch { /* privater Modus o.ä. */ }
 // Seite 1 ist das Titelbild, Seite 2 die Teileliste: erst ab dem ersten Bauschritt gibt es etwas fortzusetzen
 const MIN_RESUME_PAGE = 3;
 function loadProgress() {
@@ -34,7 +43,6 @@ function saveProgress(id, page) {
   } catch { /* privater Modus o.ä. */ }
 }
 
-const FAVS = 'hubelino-favorites';
 function loadFavorites() {
   try { return new Set(JSON.parse(localStorage.getItem(FAVS)) || []); } catch { return new Set(); }
 }
